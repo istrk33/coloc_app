@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+//import 'package:fluttertoast/fluttertoast.dart';
 
 FirebaseAuth auth = FirebaseAuth.instance;
 FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -77,37 +77,40 @@ class _InputSection extends State<InputSection> {
               borderRadius: BorderRadius.circular(30),
               color: const Color.fromRGBO(255, 255, 255, 0.1),
             ),
-            height: 60,
+            height: 50,
             child: Row(
               children: [
                 Container(
-                  height: 60,
-                  width: 60,
+                  height: 40,
+                  width: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
                     color: Colors.white,
                   ),
                   child: const Icon(
                     Icons.people_outline,
-                    size: 30,
+                    size: 25,
                     color: Color(0xff2768bf),
                   ),
                 ),
                 SizedBox(
                   height: 60,
-                  width: 230,
+                  width: 280,
                   child: Center(
                     child: TextField(
                       controller: firstLastNameField,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.comfortaa(
-                          fontSize: 20,
+                          fontSize: 17,
                           color: Color.fromARGB(255, 255, 255, 255),
                           fontWeight: FontWeight.bold),
                       decoration: InputDecoration(
-                        hintText: 'Nom Prénom',
-                        hintStyle: GoogleFonts.comfortaa(
-                            color: Color.fromARGB(255, 182, 178, 178)),
+                        label: const Center(
+                          child: Text("Nom Prenom"),
+                        ),
+                        labelStyle: GoogleFonts.comfortaa(color: Colors.white),
+                        contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
                       ),
                     ),
@@ -123,37 +126,41 @@ class _InputSection extends State<InputSection> {
               borderRadius: BorderRadius.circular(30),
               color: const Color.fromRGBO(255, 255, 255, 0.1),
             ),
-            height: 60,
+            height: 50,
             child: Row(
               children: [
                 Container(
-                  height: 60,
-                  width: 60,
+                  height: 40,
+                  width: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
                     color: Colors.white,
                   ),
                   child: const Icon(
                     Icons.mail_outline,
-                    size: 30,
+                    size: 25,
                     color: Color(0xff2768bf),
                   ),
                 ),
                 SizedBox(
                   height: 60,
-                  width: 230,
+                  width: 280,
                   child: Center(
                     child: TextField(
                       controller: emailField,
+                      keyboardType: TextInputType.emailAddress,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.comfortaa(
-                          fontSize: 20,
+                          fontSize: 17,
                           color: Colors.white,
                           fontWeight: FontWeight.bold),
                       decoration: InputDecoration(
-                        hintText: 'Adresse email',
-                        hintStyle: GoogleFonts.comfortaa(
-                            color: Color.fromARGB(255, 182, 178, 178)),
+                        label: const Center(
+                          child: Text("Adresse email"),
+                        ),
+                        labelStyle: GoogleFonts.comfortaa(color: Colors.white),
+                        contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
                       ),
                     ),
@@ -169,38 +176,41 @@ class _InputSection extends State<InputSection> {
               borderRadius: BorderRadius.circular(30),
               color: const Color.fromRGBO(255, 255, 255, 0.1),
             ),
-            height: 60,
+            height: 50,
             child: Row(
               children: [
                 Container(
-                  height: 60,
-                  width: 60,
+                  height: 40,
+                  width: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
                     color: Colors.white,
                   ),
                   child: const Icon(
                     Icons.phone_android_outlined,
-                    size: 30,
+                    size: 25,
                     color: Color(0xff2768bf),
                   ),
                 ),
                 SizedBox(
                   height: 60,
-                  width: 230,
+                  width: 280,
                   child: Center(
                     child: TextField(
                       controller: mobileField,
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.comfortaa(
-                          fontSize: 20,
+                          fontSize: 17,
                           color: Colors.white,
                           fontWeight: FontWeight.bold),
                       decoration: InputDecoration(
-                        hintText: 'Mobile',
-                        hintStyle: GoogleFonts.comfortaa(
-                            color: Color.fromARGB(255, 182, 178, 178)),
+                        label: const Center(
+                          child: Text("Numéro téléphone"),
+                        ),
+                        labelStyle: GoogleFonts.comfortaa(color: Colors.white),
+                        contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
                       ),
                     ),
@@ -216,38 +226,41 @@ class _InputSection extends State<InputSection> {
               borderRadius: BorderRadius.circular(30),
               color: const Color.fromRGBO(255, 255, 255, 0.1),
             ),
-            height: 60,
+            height: 50,
             child: Row(
               children: [
                 Container(
-                  height: 60,
-                  width: 60,
+                  height: 40,
+                  width: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
                     color: Colors.white,
                   ),
                   child: const Icon(
                     Icons.lock_outline,
-                    size: 30,
+                    size: 25,
                     color: Color(0xff2768bf),
                   ),
                 ),
                 SizedBox(
                   height: 60,
-                  width: 230,
+                  width: 280,
                   child: Center(
                     child: TextField(
                       controller: passwordField,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.comfortaa(
-                          fontSize: 20,
+                          fontSize: 17,
                           color: Colors.white,
                           fontWeight: FontWeight.bold),
                       obscureText: true,
                       decoration: InputDecoration(
-                        hintText: 'Mot de passe',
-                        hintStyle: GoogleFonts.comfortaa(
-                            color: Color.fromARGB(255, 182, 178, 178)),
+                        label: const Center(
+                          child: Text("Mot de passe"),
+                        ),
+                        labelStyle: GoogleFonts.comfortaa(color: Colors.white),
+                        contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
                       ),
                     ),
@@ -263,39 +276,42 @@ class _InputSection extends State<InputSection> {
               borderRadius: BorderRadius.circular(30),
               color: const Color.fromRGBO(255, 255, 255, 0.1),
             ),
-            height: 60,
+            height: 50,
             child: Row(
               children: [
                 Container(
-                  height: 60,
-                  width: 60,
+                  height: 40,
+                  width: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
                     color: Colors.white,
                   ),
                   child: const Icon(
                     Icons.date_range,
-                    size: 30,
+                    size: 25,
                     color: Color(0xff2768bf),
                   ),
                 ),
                 SizedBox(
                   height: 60,
-                  width: 230,
+                  width: 280,
                   child: Center(
                     child: TextField(
                       readOnly: true,
                       controller: birthdateField,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.comfortaa(
-                          fontSize: 20,
+                          fontSize: 17,
                           color: Colors.white,
                           fontWeight: FontWeight.bold),
                       // obscureText: true,
                       decoration: InputDecoration(
-                        hintText: 'Date de naissance',
-                        hintStyle: GoogleFonts.comfortaa(
-                            color: Color.fromARGB(255, 182, 178, 178)),
+                        label: const Center(
+                          child: Text("Date de naissance"),
+                        ),
+                        labelStyle: GoogleFonts.comfortaa(color: Colors.white),
+                        contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
                       ),
                       onTap: () async {
@@ -337,7 +353,12 @@ class _InputSection extends State<InputSection> {
                           });
                         }),
                     Expanded(
-                      child: Text('Homme'),
+                      child: Text(
+                        'Homme',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
                     )
                   ],
                 ),
@@ -354,7 +375,14 @@ class _InputSection extends State<InputSection> {
                             _sexe = value;
                           });
                         }),
-                    Expanded(child: Text('Lave Vaisselle'))
+                    Expanded(
+                      child: Text(
+                        'Femme',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    )
                   ],
                 ),
                 flex: 1,
@@ -453,17 +481,7 @@ class _InputSection extends State<InputSection> {
         })
         .then((value) => print("Utilisateur ajouté"))
         .catchError(
-          (error) => {
-            // print("Erreur: $error"),
-            Fluttertoast.showToast(
-                msg: "Erreur: $error",
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.CENTER,
-                timeInSecForIosWeb: 1,
-                backgroundColor: Colors.red,
-                textColor: Colors.white,
-                fontSize: 16.0)
-          },
+          (error) => {print("Erreur: $error")},
         );
   }
 }
