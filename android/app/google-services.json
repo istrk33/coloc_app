@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "1046538651864",
+    "project_id": "coloc-app-b9079",
+    "storage_bucket": "coloc-app-b9079.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1046538651864:android:3631c891bffbc19c46afad",
+        "android_client_info": {
+          "package_name": "com.example.coloc_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1046538651864-etakefu1t09f19u4svu04112nct5go3v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCboluq2OznXpBDOdQwlx9inOIt4dbN1WQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1046538651864-etakefu1t09f19u4svu04112nct5go3v.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1046538651864-5fbhltkva0e96prdq6f4112f1qbmku1l.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.colocApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
