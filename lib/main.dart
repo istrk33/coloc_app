@@ -7,7 +7,7 @@ import 'auth/sign_in.dart';
 import 'auth/sign_up.dart';
 import 'firebase_options.dart';
 import 'pages/home_page.dart';
-import 'pages/homepage_list.dart';
+import 'pages/navbar.dart';
 
 FirebaseAuth auth = FirebaseAuth.instance;
 
@@ -22,7 +22,7 @@ Future<void> main() async {
       runApp(const LoginTabBar());
     } else {
       print('Utilisateur connecté: ' + user.email!);
-      runApp((HomagePageList()));
+      runApp((Navbar()));
     }
   });
 }
