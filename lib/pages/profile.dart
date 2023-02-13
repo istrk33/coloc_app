@@ -16,7 +16,7 @@ class Profile extends StatelessWidget {
           children: [
             const SizedBox(height: 30),
             SizedBox(
-              height: 500,
+              height: 450,
               child: UserInfo(),
             ),
             LogoutButton(),
