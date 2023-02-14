@@ -44,6 +44,8 @@ dependencies:
   google_nav_bar: ^5.0.6
   google_maps_flutter: ^2.2.3
   google_maps_flutter_web: ^0.4.0+5
+  geolocator: ^9.0.2
+  # dependencies:
   #fluttertoast: ^8.1.2
 
 dev_dependencies:

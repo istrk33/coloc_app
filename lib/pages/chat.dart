@@ -7,10 +7,11 @@ class Chat extends StatelessWidget {
   Widget build(BuildContext context) {
     // Material App
     return const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        // Scaffold Widget
-        home: Scaffold(
-          body: Center(child: Text('Chat')),
-        ));
+      debugShowCheckedModeBanner: false,
+      // Scaffold Widget
+      home: Scaffold(
+        body: Center(child: Text('Chat')),
+      ),
+    );
   }
 }

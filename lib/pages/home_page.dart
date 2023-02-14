@@ -132,11 +132,12 @@ class GetUserData extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.done) {
           Map<String, dynamic> data =
               snapshot.data!.data() as Map<String, dynamic>;
-          print("SIUUUUUUUUUUUUUUUUUUUUUU");
           print(data[fieldName]);
           print(data[fieldName].runtimeType);
           print(data[fieldName].runtimeType.toString() == 'bool');
-          String text = ((data[fieldName].runtimeType.toString() == 'bool')?((data[fieldName]) ? "Homme" : "Femme"):data[fieldName]);
+          String text = ((data[fieldName].runtimeType.toString() == 'bool')
+              ? ((data[fieldName]) ? "Homme" : "Femme")
+              : data[fieldName]);
           // if (data[fieldName].runtimeType.toString() == 'bool') {
           //   return ListTile(
           //     title: Text(
@@ -150,24 +151,29 @@ class GetUserData extends StatelessWidget {
           //     ),
           //   );
           // } else {
-            return ListTile(
-              title: Text(
-                text,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          return ListTile(
+            title: Text(
+              text,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
               ),
-              subtitle: Text(
-                fieldTitle,
-                style: const TextStyle(fontSize: 20),
+            ),
+            subtitle: Text(
+              fieldTitle,
+              style: const TextStyle(
+                fontSize: 20,
               ),
-            );
+            ),
+          );
           // }
         }
         return const ListTile(
-            title: Text(
-          'En cours de chargement',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ));
+          title: Text(
+            'En cours de chargement',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          ),
+        );
       },
     );
   }

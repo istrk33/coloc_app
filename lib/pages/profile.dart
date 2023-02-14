@@ -160,10 +160,11 @@ class GetUserData extends StatelessWidget {
           // }
         }
         return const ListTile(
-            title: Text(
-          'En cours de chargement',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ));
+          title: Text(
+            'En cours de chargement',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          ),
+        );
       },
     );
   }
