@@ -2,39 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
-// const LatLng supDeVinciLocation =
-//     LatLng(44.854830739597155, -0.5724543809643035);
-
-// // Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-
-// class Map extends StatelessWidget {
-//   const Map({Key? key}) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     // Material App
-//     return const MaterialApp(
-//       debugShowCheckedModeBanner: false,
-//       // Scaffold Widget
-//       home: Scaffold(
-//         body: GoogleMap(
-//           initialCameraPosition: CameraPosition(
-//             target: supDeVinciLocation,
-//             zoom: 13,
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-// Future<Position> getPosition() async {
-//   Position position = await Geolocator.getCurrentPosition(
-//     desiredAccuracy: LocationAccuracy.high,
-//   );
-//   return position;
-// }
-
 class Map extends StatefulWidget {
   @override
   _MapState createState() => _MapState();
