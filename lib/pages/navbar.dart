@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'home.dart';
 import 'chat.dart';
 import 'map.dart';
+import 'profileTest.dart';
 
 class Navbar extends StatefulWidget {
   const Navbar({Key? key}) : super(key: key);
@@ -24,7 +25,7 @@ class _NavbarState extends State<Navbar> {
     Home(),
     Map(),
     Chat(),
-    Profile()
+    ProfilePage()
   ];
 
   @override
