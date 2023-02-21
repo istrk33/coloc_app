@@ -1,85 +1,89 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:platform_maps_flutter/platform_maps_flutter.dart';
+import 'package:geolocator_web/geolocator_web.dart';
+// import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
-class Map extends StatefulWidget {
+class MapScreen extends StatefulWidget {
   @override
-  _MapState createState() => _MapState();
+  _MapScreenState createState() => _MapScreenState();
 }
 
-class _MapState extends State<Map> {
-  GoogleMapController? _mapController;
-  Position? _currentPosition;
-  Set<Marker> _markers = {};
+class _MapScreenState extends State<MapScreen> {
+  final Geolocator _geolocator = Geolocator();
+  late Position _position = Position(
+    latitude: 44.837789,
+    longitude: -0.57918,
+    speed: 0,
+    altitude: 0,
+    accuracy: 0,
+    heading: 0,
+    speedAccuracy: 0,
+    timestamp: DateTime.now(),
+  );
+  late PlatformMapController _mapController;
 
   @override
   void initState() {
     super.initState();
-    checkLocationPermission();
+    _requestLocationPermission();
   }
 
-  Future<void> checkLocationPermission() async {
-    LocationPermission permission = await Geolocator.checkPermission();
+  Future<void> _requestLocationPermission() async {
+    final LocationPermission permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        // Afficher un message d'erreur et demander à l'utilisateur d'autoriser manuellement les autorisations de localisation.
-      }
-    }
-
-    if (permission == LocationPermission.whileInUse ||
-        permission == LocationPermission.always) {
-      getCurrentLocation();
+      // Handle denied permission
+      print('Permission denied');
+    } else if (permission == LocationPermission.deniedForever) {
+      // Handle permanently denied permission
+      print('Permission permanently denied');
+    } else {
+      _getCurrentLocation();
     }
   }
 
-  Future<void> getCurrentLocation() async {
-    Position position = await Geolocator.getCurrentPosition();
-    setState(() {
-      _currentPosition = position;
-      _markers.add(
-        Marker(
-          markerId: MarkerId('Ma position'),
-          position: LatLng(position.latitude, position.longitude),
-          infoWindow: InfoWindow(title: 'Ma position'),
+  Future<void> _getCurrentLocation() async {
+    try {
+      final Position newPosition = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      setState(() {
+        _position = newPosition;
+      });
+      _mapController.animateCamera(
+        CameraUpdate.newLatLng(
+          LatLng(_position.latitude, _position.longitude),
         ),
       );
-    });
-    if (_mapController != null) {
-      _mapController!.animateCamera(CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: LatLng(position.latitude, position.longitude),
-          zoom: 16,
-        ),
-      ));
+    } catch (e) {
+      print('Could not get location: $e');
     }
-    // _mapController!.animateCamera(CameraUpdate.newCameraPosition(
-    //   CameraPosition(
-    //     target: LatLng(position.latitude, position.longitude),
-    //     zoom: 16,
-    //   ),
-    // ));
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_currentPosition == null) {
-      return Container();
-    }
-
-    CameraPosition initialCameraPosition = CameraPosition(
-        target: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-        zoom: 15);
-
-    return GoogleMap(
-      markers: _markers,
-      onMapCreated: (GoogleMapController controller) {
-        _mapController = controller;
-      },
-      // mapType: MapType.satellite,
-      initialCameraPosition: CameraPosition(
-        target: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-        zoom: 13,
+    return Scaffold(
+      body: PlatformMap(
+        onMapCreated: (controller) {
+          _mapController = controller;
+        },
+        initialCameraPosition: CameraPosition(
+          target: LatLng(37.422, -122.084),
+          zoom: 15,
+        ),
+        markers: _position != null
+            ? Set<Marker>.of([
+                Marker(
+                  markerId: MarkerId("currentPosition"),
+                  position: LatLng(_position.latitude, _position.longitude),
+                  infoWindow: InfoWindow(
+                    title: "Current Position",
+                    snippet:
+                        "Lat: ${_position.latitude}, Long: ${_position.longitude}",
+                  ),
+                ),
+              ])
+            : Set<Marker>(),
       ),
     );
   }

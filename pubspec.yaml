@@ -47,6 +47,8 @@ dependencies:
   geolocator: ^9.0.2
   image_picker: ^0.8.6+2
   firebase_storage: ^11.0.13
+  platform_maps_flutter: ^1.0.2
+  geolocator_web: ^2.0.0
   # dependencies:
   #fluttertoast: ^8.1.2
 
