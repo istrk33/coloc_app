@@ -11,7 +11,7 @@ class Home extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
-      child: Column(
+      child: ListView(
         children: [
           const Padding(
             padding: EdgeInsets.all(15.0),
@@ -41,8 +41,7 @@ class Home extends StatelessWidget {
                         boxShadow: const [
                           BoxShadow(
                             color: Colors.black26,
-                            offset: Offset(2, 2),
-                            blurRadius: 10,
+                            blurRadius: 0.5,
                           ),
                         ],
                       ),

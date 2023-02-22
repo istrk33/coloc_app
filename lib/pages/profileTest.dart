@@ -149,9 +149,7 @@ class GetUserData extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.done) {
           Map<String, dynamic> data =
               snapshot.data!.data() as Map<String, dynamic>;
-          String text = ((data[fieldName].runtimeType.toString() == 'bool')
-              ? ((data[fieldName]) ? "Homme" : "Femme")
-              : data[fieldName]);
+          String text = (data[fieldName].toString());
           return Text(
             text,
             style: const TextStyle(fontSize: 15),

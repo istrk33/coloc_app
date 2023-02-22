@@ -9,6 +9,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.15"
+  apple_maps_flutter:
+    dependency: transitive
+    description:
+      name: apple_maps_flutter
+      sha256: "3785518d2bf37066e920b055b171f76258e8937d9182946e5c3ba63614f28285"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
   archive:
     dependency: transitive
     description:
@@ -267,6 +275,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_platform_widgets:
+    dependency: "direct main"
+    description:
+      name: flutter_platform_widgets
+      sha256: "81c7d0510532db7616927e75a1733d63c5f7791ca1908c83361165b18b191f5f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.20.0"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -318,7 +334,7 @@ packages:
     source: hosted
     version: "4.0.7"
   geolocator_web:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: geolocator_web
       sha256: f68a122da48fcfff68bbc9846bb0b74ef651afe84a1b1f6ec20939de4d6860e1
@@ -605,6 +621,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.0"
+  platform_maps_flutter:
+    dependency: "direct main"
+    description:
+      name: platform_maps_flutter
+      sha256: "866b3270cf4efe0df1c9e6012840fb6f5623dd1844b1cfc6aaca4ba36b068f98"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   plugin_platform_interface:
     dependency: transitive
     description:
