@@ -49,6 +49,7 @@ dependencies:
   platform_maps_flutter: ^1.0.2
   geolocator_web: ^2.0.0
   google_maps_flutter_web: ^0.4.0+5
+  flutter_platform_widgets: ^1.6.1
   # dependencies:
   #fluttertoast: ^8.1.2
 
