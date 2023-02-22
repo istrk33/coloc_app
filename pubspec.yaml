@@ -43,12 +43,12 @@ dependencies:
   flutter_launcher_icons: ^0.11.0
   google_nav_bar: ^5.0.6
   google_maps_flutter: ^2.2.3
-  google_maps_flutter_web: ^0.4.0+5
   geolocator: ^9.0.2
   image_picker: ^0.8.6+2
   firebase_storage: ^11.0.13
   platform_maps_flutter: ^1.0.2
   geolocator_web: ^2.0.0
+  google_maps_flutter_web: ^0.4.0+5
   # dependencies:
   #fluttertoast: ^8.1.2
 
