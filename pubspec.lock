@@ -401,10 +401,10 @@ packages:
     dependency: "direct main"
     description:
       name: google_maps_flutter_web
-      sha256: a3c05ec5921885c38196f1bd264a445a698db34f1b5dcbc515add49803bf455d
+      sha256: "37dffb692e9c92ae1b24d44ab669dae498406038753b520e2c5a741115246b03"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.0+5"
+    version: "0.4.0+6"
   google_nav_bar:
     dependency: "direct main"
     description:
@@ -549,6 +549,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.8.0"
+  nested:
+    dependency: transitive
+    description:
+      name: nested
+      sha256: "03bac4c528c64c95c722ec99280375a6f2fc708eec17c7b3f07253b626cd2a20"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   path:
     dependency: transitive
     description:
@@ -653,6 +661,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.2.4"
+  provider:
+    dependency: "direct main"
+    description:
+      name: provider
+      sha256: cdbe7530b12ecd9eb455bdaa2fcb8d4dad22e80b8afb4798b41479d5ce26847f
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.5"
   sanitize_html:
     dependency: transitive
     description:

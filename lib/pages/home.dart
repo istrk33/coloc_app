@@ -48,8 +48,8 @@ class Home extends StatelessWidget {
                       child: Stack(
                         children: [
                           Container(
-                            margin: const EdgeInsets.only(left: 20),
-                            alignment: Alignment.centerLeft,
+                            margin: const EdgeInsets.fromLTRB(20, 10, 0, 0),
+                            alignment: Alignment.topLeft,
                             child: Text(
                               snap[index]['Title'],
                               style: const TextStyle(
@@ -59,7 +59,18 @@ class Home extends StatelessWidget {
                             ),
                           ),
                           Container(
-                            margin: const EdgeInsets.only(right: 20),
+                            margin: const EdgeInsets.fromLTRB(20, 30, 50, 0),
+                            alignment: Alignment.topLeft,
+                            child: Text(
+                              '-'+snap[index]['Description'].substring(0,150)+'...',
+                              style: const TextStyle(
+                                color: Colors.black54,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            margin: const EdgeInsets.only(right: 15),
                             alignment: Alignment.centerRight,
                             child: Text(
                               snap[index]['Price'].toString() + "\u{20AC}",
