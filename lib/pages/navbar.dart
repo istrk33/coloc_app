@@ -6,7 +6,7 @@ import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'home.dart';
 import 'chat.dart';
-import 'map.dart';
+import 'Maps/map.dart';
 import 'profileTest.dart';
 
 class Navbar extends StatefulWidget {
@@ -30,12 +30,30 @@ class _NavbarState extends State<Navbar> {
 
   @override
   Widget build(BuildContext context) {
+    bool _isOwnerMode = false;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('CollocApp'),
+          title: const Text('ColocApp'),
           backgroundColor: Color.fromARGB(255, 45, 101, 144),
+          actions: [
+            Row(
+              children: [
+                Text("Mode Propriétaire"),
+                Switch(
+                  value: _isOwnerMode,
+                  onChanged: (bool value) {
+                    setState(() {
+                      _isOwnerMode = value;
+                      // Ajoutez ici le code pour activer/désactiver le mode sombre
+                    });
+                  },
+                ),
+                SizedBox(width: 5,)
+              ],
+            )
+          ],
         ),
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
