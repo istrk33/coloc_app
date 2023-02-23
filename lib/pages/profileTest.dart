@@ -1,3 +1,4 @@
+import 'package:coloc_app/pages/navbar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,10 +7,19 @@ import '/pages/edit_profile_page.dart';
 import '/widgets/profile_button_widget.dart';
 import '/widgets/profile_widget.dart';
 import '/widgets/profile_numbers_widget.dart';
+import 'package:provider/provider.dart';
 
 FirebaseAuth auth = FirebaseAuth.instance;
 FirebaseFirestore firestore = FirebaseFirestore.instance;
 final User? currentUser = auth.currentUser;
+
+class ProfilMode {
+  static bool _isOwnerMode = false;
+
+  static bool getIsOwnerMode() {
+    return _isOwnerMode;
+  }
+}
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -22,13 +32,13 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: ListView(
         physics: BouncingScrollPhysics(),
         children: [
           ProfileWidget(
-            imagePath: 'https://www.pngitem.com/pimgs/m/504-5040528_empty-profile-picture-png-transparent-png.png',
+            imagePath:
+                'https://www.pngitem.com/pimgs/m/504-5040528_empty-profile-picture-png-transparent-png.png',
             onClicked: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => EditProfilePage()),
@@ -42,6 +52,25 @@ class _ProfilePageState extends State<ProfilePage> {
           buildName(),
           const SizedBox(height: 24),
           Center(child: buildUpgradeButton()),
+          // Center(
+          //   child: Column(
+          //     children: [
+          //       Text("Mode Propriétaire"),
+          //       Switch(
+          //         value: ProfilePage._isOwnerMode,
+          //         onChanged: (bool value) {
+          //           setState(() {
+          //             ProfilePage._isOwnerMode = value;
+          //             // Ajoutez ici le code pour activer/désactiver le mode sombre
+          //           });
+          //         },
+          //       ),
+          //       SizedBox(
+          //         width: 5,
+          //       )
+          //     ],
+          //   ),
+          // ),
           const SizedBox(height: 24),
           NumbersWidget(),
           const SizedBox(height: 30),
@@ -68,8 +97,15 @@ class _ProfilePageState extends State<ProfilePage> {
       );
 
   Widget buildUpgradeButton() => ButtonWidget(
-        text: 'Passer à la version PRO',
-        onClicked: () {},
+        text:
+            ProfilMode._isOwnerMode ? 'Mode propriétaire' : 'Mode Colocataire',
+        onClicked: () {
+          Navbar().getState()!.updateMenuItems();
+        },
+        icon: ProfilMode._isOwnerMode
+            ? Icon(Icons.apartment)
+            : Icon(Icons.payment),
+        bgcolor: ProfilMode._isOwnerMode ? Colors.blue : Colors.red,
       );
 
   Widget buildAbout() => Container(
@@ -118,9 +154,11 @@ class GetUserDataName extends StatelessWidget {
           // }
         }
         return const ListTile(
-          title: Text(
-            'En cours de chargement',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          title: Center(
+            child: Text(
+              'En cours de chargement',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
           ),
         );
       },
@@ -165,7 +203,6 @@ class GetUserData extends StatelessWidget {
       },
     );
   }
-  
 }
 
 class LogoutButton extends StatelessWidget {

@@ -14,11 +14,48 @@ class Navbar extends StatefulWidget {
 
   @override
   State<Navbar> createState() => _NavbarState();
+
+  _NavbarState? getState() => _NavbarState._state;
 }
 
 class _NavbarState extends State<Navbar> {
   int _selectedIndex = 0;
-
+  final List<GButton> menuItemsColoc = [
+    const GButton(
+      icon: Icons.home,
+      text: 'Home',
+    ),
+    const GButton(
+      icon: Icons.map,
+      text: 'Carte',
+    ),
+    const GButton(
+      icon: Icons.chat_bubble,
+      text: 'Messagerie',
+    ),
+    const GButton(
+      icon: Icons.people,
+      text: 'Profile',
+    ),
+  ];
+  final List<GButton> menuItemsProp = [
+    const GButton(
+      icon: Icons.other_houses,
+      text: 'Propriétés',
+    ),
+    const GButton(
+      icon: Icons.monetization_on,
+      text: 'Paiements en attente',
+    ),
+    const GButton(
+      icon: Icons.chat_bubble,
+      text: 'Messagerie',
+    ),
+    const GButton(
+      icon: Icons.people,
+      text: 'Profile',
+    ),
+  ];
   static const TextStyle optionStyle =
       TextStyle(fontSize: 30, fontWeight: FontWeight.w600);
   static List<Widget> _widgetOptions = <Widget>[
@@ -28,32 +65,34 @@ class _NavbarState extends State<Navbar> {
     ProfilePage()
   ];
 
+  late List<GButton> _currentMenuItems;
+  @override
+  void initState() {
+    super.initState();
+    _currentMenuItems = menuItemsColoc;
+    _state = this;
+  }
+
+  static _NavbarState? _state;
+
+  void updateMenuItems() {
+    setState(() {
+      if (ProfilMode.getIsOwnerMode()) {
+        _currentMenuItems = menuItemsProp;
+      } else {
+        _currentMenuItems = menuItemsColoc;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    bool _isOwnerMode = false;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
           title: const Text('ColocApp'),
           backgroundColor: Color.fromARGB(255, 45, 101, 144),
-          actions: [
-            Row(
-              children: [
-                Text("Mode Propriétaire"),
-                Switch(
-                  value: _isOwnerMode,
-                  onChanged: (bool value) {
-                    setState(() {
-                      _isOwnerMode = value;
-                      // Ajoutez ici le code pour activer/désactiver le mode sombre
-                    });
-                  },
-                ),
-                SizedBox(width: 5,)
-              ],
-            )
-          ],
         ),
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
@@ -79,24 +118,7 @@ class _NavbarState extends State<Navbar> {
                 duration: Duration(milliseconds: 400),
                 tabBackgroundColor: Colors.grey[100]!,
                 color: Colors.black,
-                tabs: const [
-                  GButton(
-                    icon: Icons.home,
-                    text: 'Home',
-                  ),
-                  GButton(
-                    icon: Icons.map,
-                    text: 'Carte',
-                  ),
-                  GButton(
-                    icon: Icons.chat_bubble,
-                    text: 'Messagerie',
-                  ),
-                  GButton(
-                    icon: Icons.people,
-                    text: 'Profile',
-                  ),
-                ],
+                tabs: _currentMenuItems,
                 selectedIndex: _selectedIndex,
                 onTabChange: (index) {
                   setState(() {
