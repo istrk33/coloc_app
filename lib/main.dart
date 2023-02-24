@@ -1,3 +1,4 @@
+import 'package:coloc_app/themes/color.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -38,13 +39,13 @@ class LoginTabBar extends StatelessWidget {
       supportedLocales: [const Locale('en'), const Locale('fr')],
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        backgroundColor: Color(0xff2768bf),
+        backgroundColor: MyTheme.blue3,
       ),
       home: DefaultTabController(
         length: 2,
         child: Scaffold(
           appBar: AppBar(
-            backgroundColor: Color(0xff2768bf),
+            backgroundColor: MyTheme.blue3,
             bottom: const TabBar(
               tabs: [Tab(text: 'Connexion'), Tab(text: 'Inscription')],
             ),

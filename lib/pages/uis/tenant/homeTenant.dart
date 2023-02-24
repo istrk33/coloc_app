@@ -52,7 +52,7 @@ class HomeTenant extends StatelessWidget {
                             margin: const EdgeInsets.fromLTRB(20, 10, 0, 0),
                             alignment: Alignment.topLeft,
                             child: Text(
-                              snap[index]['__title'],
+                              snap[index]['title'],
                               style: const TextStyle(
                                 color: Colors.black54,
                                 fontWeight: FontWeight.bold,
