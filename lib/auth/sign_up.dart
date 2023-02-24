@@ -1,3 +1,4 @@
+import 'package:coloc_app/themes/color.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,8 +18,8 @@ class SignupPage extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xff86bae9),
-            Color(0xff2768bf),
+            MyTheme.blue4,
+            MyTheme.blue3,
           ],
         ),
       ),
@@ -41,7 +42,7 @@ Widget textSection = Container(
     style: GoogleFonts.comfortaa(
       fontSize: 16,
       fontWeight: FontWeight.bold,
-      color: Color(0xff2768bf),
+      color: MyTheme.blue3,
     ),
   ),
 );
@@ -85,12 +86,12 @@ class _InputSection extends State<InputSection> {
                   width: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
-                    color: Colors.white,
+                    color: MyTheme.white,
                   ),
                   child: const Icon(
                     Icons.people_outline,
                     size: 25,
-                    color: Color(0xff2768bf),
+                    color:MyTheme.blue3,
                   ),
                 ),
                 SizedBox(
@@ -102,13 +103,13 @@ class _InputSection extends State<InputSection> {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.comfortaa(
                           fontSize: 17,
-                          color: Color.fromARGB(255, 255, 255, 255),
+                          color: MyTheme.white,
                           fontWeight: FontWeight.bold),
                       decoration: InputDecoration(
                         label: const Center(
                           child: Text("Nom Prenom"),
                         ),
-                        labelStyle: GoogleFonts.comfortaa(color: Colors.white),
+                        labelStyle: GoogleFonts.comfortaa(color: MyTheme.white),
                         contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
@@ -134,12 +135,12 @@ class _InputSection extends State<InputSection> {
                   width: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
-                    color: Colors.white,
+                    color: MyTheme.white,
                   ),
                   child: const Icon(
                     Icons.mail_outline,
                     size: 25,
-                    color: Color(0xff2768bf),
+                    color: MyTheme.blue3,
                   ),
                 ),
                 SizedBox(
@@ -152,13 +153,13 @@ class _InputSection extends State<InputSection> {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.comfortaa(
                           fontSize: 17,
-                          color: Colors.white,
+                          color: MyTheme.white,
                           fontWeight: FontWeight.bold),
                       decoration: InputDecoration(
                         label: const Center(
                           child: Text("Adresse email"),
                         ),
-                        labelStyle: GoogleFonts.comfortaa(color: Colors.white),
+                        labelStyle: GoogleFonts.comfortaa(color:MyTheme.white),
                         contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
@@ -184,12 +185,12 @@ class _InputSection extends State<InputSection> {
                   width: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
-                    color: Colors.white,
+                    color: MyTheme.white,
                   ),
                   child: const Icon(
                     Icons.phone_android_outlined,
                     size: 25,
-                    color: Color(0xff2768bf),
+                    color: MyTheme.blue3,
                   ),
                 ),
                 SizedBox(
@@ -202,13 +203,13 @@ class _InputSection extends State<InputSection> {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.comfortaa(
                           fontSize: 17,
-                          color: Colors.white,
+                          color: MyTheme.white,
                           fontWeight: FontWeight.bold),
                       decoration: InputDecoration(
                         label: const Center(
                           child: Text("Numéro téléphone"),
                         ),
-                        labelStyle: GoogleFonts.comfortaa(color: Colors.white),
+                        labelStyle: GoogleFonts.comfortaa(color: MyTheme.white),
                         contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
@@ -234,12 +235,12 @@ class _InputSection extends State<InputSection> {
                   width: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
-                    color: Colors.white,
+                    color: MyTheme.white,
                   ),
                   child: const Icon(
                     Icons.lock_outline,
                     size: 25,
-                    color: Color(0xff2768bf),
+                    color: MyTheme.blue3,
                   ),
                 ),
                 SizedBox(
@@ -251,14 +252,14 @@ class _InputSection extends State<InputSection> {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.comfortaa(
                           fontSize: 17,
-                          color: Colors.white,
+                          color: MyTheme.white,
                           fontWeight: FontWeight.bold),
                       obscureText: true,
                       decoration: InputDecoration(
                         label: const Center(
                           child: Text("Mot de passe"),
                         ),
-                        labelStyle: GoogleFonts.comfortaa(color: Colors.white),
+                        labelStyle: GoogleFonts.comfortaa(color:MyTheme.white),
                         contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
@@ -284,12 +285,12 @@ class _InputSection extends State<InputSection> {
                   width: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
-                    color: Colors.white,
+                    color: MyTheme.white,
                   ),
                   child: const Icon(
                     Icons.date_range,
                     size: 25,
-                    color: Color(0xff2768bf),
+                    color: MyTheme.blue3,
                   ),
                 ),
                 SizedBox(
@@ -302,14 +303,14 @@ class _InputSection extends State<InputSection> {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.comfortaa(
                           fontSize: 17,
-                          color: Colors.white,
+                          color: MyTheme.white,
                           fontWeight: FontWeight.bold),
                       // obscureText: true,
                       decoration: InputDecoration(
                         label: const Center(
                           child: Text("Date de naissance"),
                         ),
-                        labelStyle: GoogleFonts.comfortaa(color: Colors.white),
+                        labelStyle: GoogleFonts.comfortaa(color: MyTheme.white),
                         contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
@@ -356,7 +357,7 @@ class _InputSection extends State<InputSection> {
                       child: Text(
                         'Homme',
                         style: TextStyle(
-                          color: Colors.white,
+                          color:MyTheme.white,
                         ),
                       ),
                     )
@@ -379,7 +380,7 @@ class _InputSection extends State<InputSection> {
                       child: Text(
                         'Femme',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: MyTheme.white,
                         ),
                       ),
                     )
@@ -395,7 +396,7 @@ class _InputSection extends State<InputSection> {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
+                backgroundColor: MyTheme.white,
                 padding: const EdgeInsets.fromLTRB(10, 15, 10, 15),
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(30)),
@@ -404,7 +405,7 @@ class _InputSection extends State<InputSection> {
               child: Text(
                 "Inscription".toUpperCase(),
                 style: const TextStyle(
-                  color: Color(0xff2768bf),
+                  color: MyTheme.blue3,
                   fontSize: 20.0,
                 ),
               ),
