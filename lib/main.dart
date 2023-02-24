@@ -6,8 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'auth/sign_in.dart';
 import 'auth/sign_up.dart';
 import 'firebase_options.dart';
-import 'pages/home_page.dart';
-import 'pages/navbar.dart';
+import 'pages/uis/common/navbar.dart';
 
 FirebaseAuth auth = FirebaseAuth.instance;
 

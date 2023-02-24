@@ -1,3 +1,4 @@
+import 'package:coloc_app/themes/color.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,7 +24,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
           title: const Text('Éditer profil'),
-          backgroundColor: Color.fromARGB(255, 45, 101, 144),
+          backgroundColor: MyTheme.blue3,
         ),
         body: ListView(
           padding: EdgeInsets.symmetric(horizontal: 32),

@@ -1,9 +1,9 @@
-import 'package:coloc_app/pages/navbar.dart';
+import 'package:coloc_app/pages/uis/common/navbar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '/pages/edit_profile_page.dart';
+import 'edit_profile_page.dart';
 import '/widgets/profile_button_widget.dart';
 import '/widgets/profile_widget.dart';
 import '/widgets/profile_numbers_widget.dart';

@@ -1,12 +1,13 @@
-import 'package:coloc_app/pages/profile.dart';
+import 'package:coloc_app/pages/uis/common/profile.dart';
+import 'package:coloc_app/themes/color.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter/cupertino.dart';
 
-class HomeP extends StatelessWidget {
-  const HomeP({Key? key}) : super(key: key);
+class HomeTenant extends StatelessWidget {
+  const HomeTenant({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -20,11 +21,8 @@ class HomeP extends StatelessWidget {
             ),
           ),
           StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection("property")
-                .where("id_owner",
-                    isEqualTo: auth.currentUser!.uid.toString())
-                .snapshots(),
+            stream:
+                FirebaseFirestore.instance.collection("announce").snapshots(),
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasData) {
@@ -39,7 +37,7 @@ class HomeP extends StatelessWidget {
                       width: double.infinity,
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: MyTheme.white,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: const [
                           BoxShadow(
@@ -51,10 +49,10 @@ class HomeP extends StatelessWidget {
                       child: Stack(
                         children: [
                           Container(
-                            margin: const EdgeInsets.only(left: 20),
-                            alignment: Alignment.centerLeft,
+                            margin: const EdgeInsets.fromLTRB(20, 10, 0, 0),
+                            alignment: Alignment.topLeft,
                             child: Text(
-                              snap[index]['property_name'],
+                              snap[index]['__title'],
                               style: const TextStyle(
                                 color: Colors.black54,
                                 fontWeight: FontWeight.bold,
@@ -62,10 +60,21 @@ class HomeP extends StatelessWidget {
                             ),
                           ),
                           Container(
-                            margin: const EdgeInsets.only(right: 20),
+                            margin: const EdgeInsets.fromLTRB(20, 30, 50, 0),
+                            alignment: Alignment.topLeft,
+                            child: Text(
+                              '-'+snap[index]['description'].substring(0,150)+'...',
+                              style: const TextStyle(
+                                color: Colors.black54,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            margin: const EdgeInsets.only(right: 15),
                             alignment: Alignment.centerRight,
                             child: Text(
-                              snap[index]['room'].toString() + "\u{20AC}",
+                              snap[index]['price'].toString() + "\u{20AC}",
                               style: TextStyle(
                                 color: Colors.green.withOpacity(0.7),
                                 fontWeight: FontWeight.bold,

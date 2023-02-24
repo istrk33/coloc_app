@@ -1,3 +1,4 @@
+import 'package:coloc_app/themes/color.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,9 +16,9 @@ class LoginPage extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xff2768bf),
-            Color(0xff2768bf),
-            Color(0xff6b9ee1),
+            MyTheme.blue3,
+            MyTheme.blue3,
+            MyTheme.blue2,
           ],
         ),
       ),
@@ -73,16 +74,14 @@ Widget titleSection = Container(
         style: GoogleFonts.exo(
           fontSize: 40,
           fontWeight: FontWeight.w900,
-          color: Colors.white,
+          color: MyTheme.white,
         ),
       ),
       const SizedBox(width: 3),
       Text(
         'App',
         style: GoogleFonts.exo(
-            fontSize: 40,
-            fontWeight: FontWeight.w900,
-            color: Color.fromARGB(255, 155, 188, 230)),
+            fontSize: 40, fontWeight: FontWeight.w900, color: MyTheme.blue4),
       ),
     ],
   ),
@@ -129,7 +128,7 @@ class InputSection extends StatelessWidget {
                   child: const Icon(
                     Icons.people_outline,
                     size: 25,
-                    color: Color(0xff2768bf),
+                    color: MyTheme.blue3,
                   ),
                 ),
                 SizedBox(
@@ -142,14 +141,14 @@ class InputSection extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.comfortaa(
                           fontSize: 18,
-                          color: Colors.white,
+                          color: MyTheme.white,
                           fontWeight: FontWeight.bold),
                       obscureText: false,
                       decoration: InputDecoration(
                         label: const Center(
                           child: Text("Adresse email"),
                         ),
-                        labelStyle: GoogleFonts.comfortaa(color: Colors.white),
+                        labelStyle: GoogleFonts.comfortaa(color: MyTheme.white),
                         contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
@@ -175,12 +174,12 @@ class InputSection extends StatelessWidget {
                   width: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
-                    color: Colors.white,
+                    color: MyTheme.white,
                   ),
                   child: const Icon(
                     Icons.lock_outline,
                     size: 25,
-                    color: Color(0xff2768bf),
+                    color: MyTheme.blue3,
                   ),
                 ),
                 SizedBox(
@@ -192,14 +191,14 @@ class InputSection extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.comfortaa(
                           fontSize: 18,
-                          color: Colors.white,
+                          color: MyTheme.white,
                           fontWeight: FontWeight.bold),
                       obscureText: true,
                       decoration: InputDecoration(
                         label: const Center(
                           child: Text("Mot de passe"),
                         ),
-                        labelStyle: GoogleFonts.comfortaa(color: Colors.white),
+                        labelStyle: GoogleFonts.comfortaa(color: MyTheme.white),
                         contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
@@ -216,7 +215,7 @@ class InputSection extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
+                backgroundColor: MyTheme.white,
                 padding: const EdgeInsets.fromLTRB(10, 15, 10, 15),
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(30)),
@@ -225,7 +224,7 @@ class InputSection extends StatelessWidget {
               child: Text(
                 "Connexion".toUpperCase(),
                 style: const TextStyle(
-                  color: Color(0xff2768bf),
+                  color: MyTheme.blue3,
                   fontSize: 20.0,
                 ),
               ),
@@ -260,7 +259,9 @@ Widget forgetButton = TextButton(
   onPressed: () {},
   child: Text(
     'Mot de passe oublié ?',
-    style:
-        GoogleFonts.comfortaa(color: Colors.white, fontWeight: FontWeight.bold),
+    style: GoogleFonts.comfortaa(
+      color: MyTheme.white,
+      fontWeight: FontWeight.bold,
+    ),
   ),
 );
