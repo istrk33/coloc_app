@@ -100,6 +100,7 @@ class _ProfilePageState extends State<ProfilePage> {
         text:
             ProfilMode._isOwnerMode ? 'Mode propriétaire' : 'Mode Colocataire',
         onClicked: () {
+          ProfilMode._isOwnerMode = !ProfilMode._isOwnerMode;
           Navbar().getState()!.updateMenuItems();
         },
         icon: ProfilMode._isOwnerMode

@@ -1,3 +1,4 @@
+import 'package:coloc_app/pages/PropUIS/propertiesList.dart';
 import 'package:coloc_app/pages/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -45,7 +46,7 @@ class _NavbarState extends State<Navbar> {
     ),
     const GButton(
       icon: Icons.monetization_on,
-      text: 'Paiements en attente',
+      text: 'Paiements',
     ),
     const GButton(
       icon: Icons.chat_bubble,
@@ -58,9 +59,15 @@ class _NavbarState extends State<Navbar> {
   ];
   static const TextStyle optionStyle =
       TextStyle(fontSize: 30, fontWeight: FontWeight.w600);
-  static List<Widget> _widgetOptions = <Widget>[
+  static List<Widget> _widgetOptionsForColoc = <Widget>[
     Home(),
     MyMap(),
+    Chat(),
+    ProfilePage()
+  ];
+  static List<Widget> _widgetOptionsForProp = <Widget>[
+    HomeP(),
+    Home(),
     Chat(),
     ProfilePage()
   ];
@@ -130,7 +137,9 @@ class _NavbarState extends State<Navbar> {
           ),
         ),
         body: Center(
-          child: _widgetOptions.elementAt(_selectedIndex),
+          child: ProfilMode.getIsOwnerMode()
+              ? _widgetOptionsForProp.elementAt(_selectedIndex)
+              : _widgetOptionsForColoc.elementAt(_selectedIndex),
         ),
       ),
     );
