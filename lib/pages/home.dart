@@ -21,7 +21,7 @@ class Home extends StatelessWidget {
           ),
           StreamBuilder<QuerySnapshot>(
             stream:
-                FirebaseFirestore.instance.collection("Announce").snapshots(),
+                FirebaseFirestore.instance.collection("announce").snapshots(),
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasData) {
@@ -51,7 +51,7 @@ class Home extends StatelessWidget {
                             margin: const EdgeInsets.fromLTRB(20, 10, 0, 0),
                             alignment: Alignment.topLeft,
                             child: Text(
-                              snap[index]['Title'],
+                              snap[index]['__title'],
                               style: const TextStyle(
                                 color: Colors.black54,
                                 fontWeight: FontWeight.bold,
@@ -62,7 +62,7 @@ class Home extends StatelessWidget {
                             margin: const EdgeInsets.fromLTRB(20, 30, 50, 0),
                             alignment: Alignment.topLeft,
                             child: Text(
-                              '-'+snap[index]['Description'].substring(0,150)+'...',
+                              '-'+snap[index]['description'].substring(0,150)+'...',
                               style: const TextStyle(
                                 color: Colors.black54,
                                 fontSize: 12,
@@ -73,7 +73,7 @@ class Home extends StatelessWidget {
                             margin: const EdgeInsets.only(right: 15),
                             alignment: Alignment.centerRight,
                             child: Text(
-                              snap[index]['Price'].toString() + "\u{20AC}",
+                              snap[index]['price'].toString() + "\u{20AC}",
                               style: TextStyle(
                                 color: Colors.green.withOpacity(0.7),
                                 fontWeight: FontWeight.bold,
