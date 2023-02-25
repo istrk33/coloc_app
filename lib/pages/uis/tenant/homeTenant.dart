@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-
 class HomeTenant extends StatelessWidget {
   const HomeTenant({Key? key}) : super(key: key);
   @override
@@ -38,38 +37,37 @@ class HomeTenant extends StatelessWidget {
                     String imgUrl = snap[index]['img_url'].toString();
                     return InkWell(
                       child: Container(
-                        height: 160,
+                        height: 250,
                         width: double.infinity,
                         margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                          color: MyTheme.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 0.5,
-                            ),
-                          ],
+                          color: Color.fromARGB(255, 242, 242, 242),
+                          borderRadius: BorderRadius.circular(25),
                         ),
                         child: Stack(
                           children: [
                             Container(
-                              margin: const EdgeInsets.fromLTRB(5, 10, 0, 0),
-                              alignment: Alignment.centerLeft,
-                              child: Container(
-                                height: 100,
-                                width: 120,
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    image: NetworkImage(imgUrl),
-                                    fit: BoxFit.cover,
+                              margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                              alignment: Alignment.topCenter,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(8),
+                                    topRight: Radius.circular(8)),
+                                child: Container(
+                                  height: 125,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                      image: NetworkImage(imgUrl),
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                             Container(
-                              margin: const EdgeInsets.fromLTRB(50, 10, 0, 0),
-                              alignment: Alignment.topCenter,
+                              margin: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                              alignment: Alignment.center,
                               child: Text(
                                 snap[index]['title'],
                                 style: const TextStyle(
@@ -79,8 +77,8 @@ class HomeTenant extends StatelessWidget {
                               ),
                             ),
                             Container(
-                              margin: const EdgeInsets.fromLTRB(130, 0, 0, 0),
-                              alignment: Alignment.centerRight,
+                              margin: const EdgeInsets.fromLTRB(0, 100, 0, 0),
+                              alignment: Alignment.center,
                               child: Text(
                                 '${'-' + snap[index]['description'].substring(0, 200)}...',
                                 style: const TextStyle(
@@ -121,9 +119,12 @@ class HomeTenant extends StatelessWidget {
                       ),
                       onTap: () {
                         Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => (AnnouncePage( announceId: snap[index].id))),
-                    );
-                        print("click on announce: "+ snap[index]['title']);
+                          MaterialPageRoute(
+                              builder: (context) => (AnnouncePage(
+                                  announceId: snap[index].id,
+                                  announceTitle:
+                                      snap[index]['title'].toString()))),
+                        );
                       },
                     );
                   },
