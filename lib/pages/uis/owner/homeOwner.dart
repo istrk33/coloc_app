@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:dropdown_textfield/dropdown_textfield.dart';
 
 class HomeOwner extends StatefulWidget {
   const HomeOwner({Key? key}) : super(key: key);
@@ -16,18 +17,73 @@ class HomeOwner extends StatefulWidget {
 class _HomeOwnerState extends State<HomeOwner> {
   final _formKey = GlobalKey<FormState>();
   late QuerySnapshot _snapshot;
-  String _searchText = '';
-
+  // String _searchText = '';
+  late SingleValueDropDownController _cntCity;
+  late SingleValueDropDownController _cntPropertyType;
+  late List<DropDownValueModel> _optionsCity;
+  late List<DropDownValueModel> _optionsPropertyType;
+  FocusNode searchFocusNode = FocusNode();
+  FocusNode textFieldFocusNode = FocusNode();
   final _propertyNameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _roomNumberController = TextEditingController();
 
   @override
   void dispose() {
+    _cntCity.dispose();
+    _cntPropertyType.dispose();
     _propertyNameController.dispose();
     _descriptionController.dispose();
     _roomNumberController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCityOptions();
+    _loadPropertyTypeOptions();
+    _cntCity = SingleValueDropDownController();
+    _cntPropertyType = SingleValueDropDownController();
+  }
+
+  Future<void> _loadCityOptions() async {
+    final querySnapshot =
+        await FirebaseFirestore.instance.collection('city').get();
+
+    List<DropDownValueModel> options = querySnapshot.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final cityName = data['city_name'] as String;
+      final postCode = data['post_code'] as String;
+      final id = doc.id;
+      return DropDownValueModel(
+        name: "${cityName}, ${postCode}",
+        value: id,
+        toolTipMsg: "",
+      );
+    }).toList();
+    setState(() {
+      _optionsCity = options;
+    });
+  }
+
+  Future<void> _loadPropertyTypeOptions() async {
+    final querySnapshot =
+        await FirebaseFirestore.instance.collection('property_type').get();
+
+    List<DropDownValueModel> options = querySnapshot.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final propertyTypeLabel = data['property_type_label'] as String;
+      final id = doc.id;
+      return DropDownValueModel(
+        name: propertyTypeLabel,
+        value: id,
+        toolTipMsg: "",
+      );
+    }).toList();
+    setState(() {
+      _optionsPropertyType = options;
+    });
   }
 
   @override
@@ -201,118 +257,58 @@ class _HomeOwnerState extends State<HomeOwner> {
                             },
                           ),
                           const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _roomNumberController,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Type de logement',
-                            ),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'Le type de logement est incorrect';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 10),
-                          Column(
-                            children: [
-                              TextField(
-                                onChanged: (value) {
-                                  setState(() {
-                                    _searchText = value;
-                                  });
-                                },
-                              ),
-                              StreamBuilder<QuerySnapshot>(
-                                stream: FirebaseFirestore.instance
-                                    .collection('city')
-                                    .snapshots(),
-                                builder: (BuildContext context,
-                                    AsyncSnapshot<QuerySnapshot> snapshot) {
-                                  if (snapshot.hasData) {
-                                    _snapshot = snapshot.data!;
-                                    final filteredData = _snapshot.docs.where(
-                                        (doc) => doc['city_name']
-                                            .toString()
-                                            .toLowerCase()
-                                            .contains(
-                                                _searchText.toLowerCase()));
-                                    final dropdownItems = filteredData
-                                        .map((doc) =>
-                                            doc['city_name'].toString())
-                                        .toList();
-                                    // "${doc['city_name']}, ${doc['post_code']}"
-                                    return DropdownButton<String>(
-                                      value: dropdownItems.isEmpty
-                                          ? null
-                                          : dropdownItems.first,
-                                      onChanged: (String? value) {},
-                                      items: dropdownItems
-                                          .map((item) =>
-                                              DropdownMenuItem<String>(
-                                                value: item,
-                                                child: Text(item),
-                                              ))
-                                          .toList(),
-                                    );
-                                  } else {
-                                    return const CircularProgressIndicator();
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                          // StreamBuilder<List<String>>(
-                          //   stream: FirebaseFirestore.instance
-                          //       .collection('city')
-                          //       .snapshots(), // Récupère la liste de données depuis une source de données
-                          //   builder: (BuildContext context,
-                          //       AsyncSnapshot<List<String>> snapshot) {
-                          //     if (snapshot.hasData) {
-                          //       // Crée une variable pour stocker la valeur sélectionnée de la DropdownButton
-                          //       String selectedValue = snapshot.data![0];
-                          //       // Crée une variable pour stocker une liste filtrée de données
-                          //       List<String> filteredList = snapshot.data!;
-                          //       // Crée une TextField pour saisir du texte à filtrer
-                          //       return Column(
-                          //         children: [
-                          //           TextField(
-                          //             onChanged: (text) {
-                          //               // Met à jour la liste filtrée en fonction de la valeur du champ texte
-                          //               setState(() {
-                          //                 filteredList = snapshot.data!
-                          //                     .where((item) => item
-                          //                         .toLowerCase()
-                          //                         .contains(text.toLowerCase()))
-                          //                     .toList();
-                          //               });
-                          //             },
-                          //           ),
-                          //           DropdownButton<String>(
-                          //             value: selectedValue,
-                          //             items: filteredList.map((value) {
-                          //               // Utilise la liste filtrée pour créer les éléments de la DropdownButton
-                          //               return DropdownMenuItem<String>(
-                          //                 value: value,
-                          //                 child: Text(value),
-                          //               );
-                          //             }).toList(),
-                          //             onChanged: (newValue) {
-                          //               setState(() {
-                          //                 selectedValue = newValue!;
-                          //               });
-                          //             },
-                          //           ),
-                          //         ],
-                          //       );
-                          //     } else if (snapshot.hasError) {
-                          //       return Text("Error: ${snapshot.error}");
-                          //     } else {
-                          //       return Text("Loading...");
+                          // TextFormField(
+                          //   controller: _roomNumberController,
+                          //   keyboardType: TextInputType.number,
+                          //   decoration: const InputDecoration(
+                          //     labelText: 'Type de logement',
+                          //   ),
+                          //   validator: (value) {
+                          //     if (value!.isEmpty) {
+                          //       return 'Le type de logement est incorrect';
                           //     }
+                          //     return null;
                           //   },
                           // ),
+                          DropDownTextField(
+                            // initialValue: "name4",
+                            controller: _cntPropertyType,
+                            clearOption: true,
+                            // enableSearch: true,
+                            // dropdownColor: Colors.green,
+                            searchDecoration: const InputDecoration(
+                                hintText: "Type de propriété"),
+                            validator: (value) {
+                              if (value == null) {
+                                return "Champ obligatoire";
+                              } else {
+                                return null;
+                              }
+                            },
+                            dropDownItemCount: 6,
+                            dropDownList: _optionsPropertyType,
+                            onChanged: (val) {},
+                          ),
+                          const SizedBox(height: 10),
+                          DropDownTextField(
+                            clearOption: false,
+                            textFieldFocusNode: textFieldFocusNode,
+                            searchFocusNode: searchFocusNode,
+                            // searchAutofocus: true,
+                            dropDownItemCount: 8,
+                            searchShowCursor: false,
+                            enableSearch: true,
+                            searchKeyboardType: TextInputType.text,
+                            dropDownList: _optionsCity,
+                            onChanged: (val) {},
+                            validator: (value) {
+                              if (value == null) {
+                                return "Champ obligatoire";
+                              } else {
+                                return null;
+                              }
+                            },
+                          ),
                           const SizedBox(height: 20),
                           ElevatedButton(
                             onPressed: () {

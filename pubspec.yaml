@@ -52,6 +52,7 @@ dependencies:
   flutter_platform_widgets: ^1.6.1
   provider: ^6.0.5
   timeago: ^3.3.0
+  dropdown_textfield: ^1.0.8
   # dependencies:
   #fluttertoast: ^8.1.2
 
