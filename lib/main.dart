@@ -40,7 +40,13 @@ class LoginTabBar extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         backgroundColor: MyTheme.blue3,
+        brightness: Brightness.light,
       ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        /* dark theme settings */
+      ),
+      themeMode: ThemeMode.dark,
       home: DefaultTabController(
         length: 2,
         child: Scaffold(
