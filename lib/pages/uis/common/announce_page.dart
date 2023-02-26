@@ -79,7 +79,7 @@ class AnnouncePage extends StatelessWidget {
                           ),
                         ),*/
                         Container(
-                          height: 75,
+                          height: 85,
                           alignment: Alignment.center,
                           margin: const EdgeInsets.fromLTRB(5, 5, 0, 0),
                           child: Column(
@@ -100,16 +100,18 @@ class AnnouncePage extends StatelessWidget {
                                   style: const TextStyle(
                                     color: MyTheme.blue3,
                                     fontWeight: FontWeight.bold,
+                                    fontSize: 20
                                   ),
                                 ),
                               ),
                             ],
                           ),
                         ),
+                        Divider(color: Colors.black, indent: 20,endIndent: 20,),
                         Container(
                           height: 50,
                           alignment: Alignment.centerLeft,
-                          margin: const EdgeInsets.fromLTRB(5, 10, 0, 0),
+                          margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -122,7 +124,7 @@ class AnnouncePage extends StatelessWidget {
                             ],
                           ),
                         ),
-                        Divider(color: Colors.black),
+                        Divider(color: Colors.black, indent: 20,endIndent: 20,),
                         Container(
                           height: 25,
                           margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),

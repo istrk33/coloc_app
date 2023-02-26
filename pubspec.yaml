@@ -40,7 +40,6 @@ dependencies:
   cloud_firestore: ^4.3.1
   firebase_auth: ^4.2.5
   google_fonts: ^3.0.1
-  flutter_launcher_icons: ^0.11.0
   google_nav_bar: ^5.0.6
   google_maps_flutter: ^2.2.3
   geolocator: ^9.0.2
@@ -59,6 +58,12 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.11.0
+  flutter_native_splash: ^2.2.11
+
+flutter_native_splash:
+  color: "#6b9ee1"
+  image: "assets/images/logo.png"
   
   # remove_alpha_ios: true
   # The "flutter_lints" package below contains a set of recommended lints to
