@@ -51,8 +51,8 @@ class AnnouncePage extends StatelessWidget {
                           height: 250,
                           child: ClipRRect(
                             borderRadius: const BorderRadius.only(
-                                bottomLeft: Radius.circular(8),
-                                bottomRight: Radius.circular(8)),
+                                bottomLeft: Radius.circular(2),
+                                bottomRight: Radius.circular(2)),
                             child: Container(
                               height: 125,
                               width: double.infinity,
@@ -66,16 +66,76 @@ class AnnouncePage extends StatelessWidget {
                             ),
                           ),
                         ),
-                        Container(
-                          height: 65,
-                          alignment: Alignment.center,
-                          margin: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+                        /*Container(
+                          height: 30,
+                          alignment: Alignment.topLeft,
+                          margin: const EdgeInsets.fromLTRB(5, 2, 0, 0),
                           child: Text(
                             currentAnnounce?['title'],
                             style: const TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold,
-                                fontSize: 25),
+                                fontSize: 24),
+                          ),
+                        ),*/
+                        Container(
+                          height: 75,
+                          alignment: Alignment.center,
+                          margin: const EdgeInsets.fromLTRB(5, 5, 0, 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                currentAnnounce?['title'],
+                                style: const TextStyle(
+                                    color: Color.fromARGB(255, 0, 0, 0),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 24),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                child: Text(
+                                  "${currentAnnounce!['price']}\u{20AC}",
+                                  style: const TextStyle(
+                                    color: MyTheme.blue3,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          height: 50,
+                          alignment: Alignment.centerLeft,
+                          margin: const EdgeInsets.fromLTRB(5, 10, 0, 0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              buildButton(context, currentAnnounce['max_roomates'].toString(), 'Colocataires'),
+                              buildDivider(),
+                              buildButton(context, "${currentAnnounce['deposit_amount']}\u{20AC}", 'Caution'),
+                              buildDivider(),
+                              buildButton(context, '3', 'Chambres'),
+                            ],
+                          ),
+                        ),
+                        Divider(color: Colors.black),
+                        Container(
+                          height: 25,
+                          margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+                          alignment: Alignment.center,
+                          child: const SingleChildScrollView(
+                            child: Text(
+                              "Description",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                    color: Color.fromARGB(255, 0, 0, 0),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 24),
+                            ),
                           ),
                         ),
                         Container(
@@ -102,4 +162,31 @@ class AnnouncePage extends StatelessWidget {
       ),
     );
   }
+
+  Widget buildDivider() => Container(
+        height: 24,
+        child: VerticalDivider(),
+      );
+
+  Widget buildButton(BuildContext context, String value, String text) =>
+      MaterialButton(
+        padding: EdgeInsets.symmetric(vertical: 4),
+        onPressed: () {},
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              value,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: MyTheme.blue3),
+            ),
+            SizedBox(height: 2),
+            Text(
+              text,
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      );
 }
