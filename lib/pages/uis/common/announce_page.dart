@@ -7,7 +7,7 @@ FirebaseAuth auth = FirebaseAuth.instance;
 FirebaseFirestore firestore = FirebaseFirestore.instance;
 final User? currentUser = auth.currentUser;
 
-class AnnouncePage extends StatelessWidget {
+class AnnouncePage extends StatefulWidget {
   final String announceId;
   final String announceTitle;
 
@@ -17,178 +17,357 @@ class AnnouncePage extends StatelessWidget {
       : super(key: key);
 
   @override
+  _AnnouncePageState createState() => _AnnouncePageState();
+}
+
+class _AnnouncePageState extends State<AnnouncePage>
+    with TickerProviderStateMixin {
+  final double infoHeight = 364.0;
+  AnimationController? animationController;
+  Animation<double>? animation;
+  double opacity1 = 0.0;
+  double opacity2 = 0.0;
+  double opacity3 = 0.0;
+  String imgUrl = "";
+  int rentValue = 0;
+  int roommatesNumber = 0;
+  int depositAmount = 0;
+  String description = "";
+
+  @override
+  void initState() {
+    animationController = AnimationController(
+        duration: const Duration(milliseconds: 1000), vsync: this);
+    animation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+        parent: animationController!,
+        curve: Interval(0, 1.0, curve: Curves.fastOutSlowIn)));
+    setData();
+    _loadAnnounceData();
+    super.initState();
+  }
+
+  Future<void> setData() async {
+    animationController?.forward();
+    await Future<dynamic>.delayed(const Duration(milliseconds: 200));
+    setState(() {
+      opacity1 = 1.0;
+    });
+    await Future<dynamic>.delayed(const Duration(milliseconds: 200));
+    setState(() {
+      opacity2 = 1.0;
+    });
+    await Future<dynamic>.delayed(const Duration(milliseconds: 200));
+    setState(() {
+      opacity3 = 1.0;
+    });
+  }
+
+  Future<void> _loadAnnounceData() async {
+    final announceData = await FirebaseFirestore.instance
+        .collection('announce')
+        .doc(widget.announceId)
+        .get();
+    imgUrl = announceData.data()?['img_url'];
+    rentValue = announceData.data()?['price'];
+    roommatesNumber = announceData.data()?['max_roomates'];
+    depositAmount = announceData.data()?['deposit_amount'];
+    description = announceData.data()?['description'];
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text(announceTitle),
-          backgroundColor: MyTheme.blue3,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back,
-                color: Color.fromARGB(255, 255, 255, 255)),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
-        body: Container(
-          child: ListView(
-            children: [
-              StreamBuilder<DocumentSnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('announce')
-                      .doc(announceId)
-                      .snapshots(),
-                  builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                    if (!snapshot.hasData) {
-                      return Text("Chargement");
-                    }
-                    var currentAnnounce = snapshot.data;
-                    return ListView(
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      children: <Widget>[
-                        Container(
-                          height: 250,
-                          child: ClipRRect(
-                            borderRadius: const BorderRadius.only(
-                                bottomLeft: Radius.circular(2),
-                                bottomRight: Radius.circular(2)),
-                            child: Container(
-                              height: 125,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image:
-                                      NetworkImage(currentAnnounce?['img_url']),
-                                  fit: BoxFit.cover,
-                                ),
+    final double tempHeight = MediaQuery.of(context).size.height -
+        (MediaQuery.of(context).size.width / 1.2) +
+        24.0;
+
+    return Container(
+      color: Colors.white,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: <Widget>[
+            Column(
+              children: <Widget>[
+                AspectRatio(
+                  aspectRatio: 1.2,
+                  child: Image.network(imgUrl, fit: BoxFit.cover),
+                ),
+              ],
+            ),
+            Positioned(
+              top: (MediaQuery.of(context).size.width / 1.2) - 24.0,
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(32.0),
+                      topRight: Radius.circular(32.0)),
+                  boxShadow: <BoxShadow>[
+                    BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        offset: const Offset(1.1, 1.1),
+                        blurRadius: 10.0),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8, right: 8),
+                  child: SingleChildScrollView(
+                    child: Container(
+                      constraints: BoxConstraints(
+                          minHeight: infoHeight,
+                          maxHeight: tempHeight > infoHeight
+                              ? tempHeight
+                              : infoHeight),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                top: 32.0, left: 18, right: 16),
+                            child: Text(
+                              widget.announceTitle,
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 22,
+                                letterSpacing: 0.27,
+                                color: Colors.black,
                               ),
                             ),
                           ),
-                        ),
-                        /*Container(
-                          height: 30,
-                          alignment: Alignment.topLeft,
-                          margin: const EdgeInsets.fromLTRB(5, 2, 0, 0),
-                          child: Text(
-                            currentAnnounce?['title'],
-                            style: const TextStyle(
-                                color: Color.fromARGB(255, 0, 0, 0),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24),
-                          ),
-                        ),*/
-                        Container(
-                          height: 85,
-                          alignment: Alignment.center,
-                          margin: const EdgeInsets.fromLTRB(5, 5, 0, 0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                currentAnnounce?['title'],
-                                style: const TextStyle(
-                                    color: Color.fromARGB(255, 0, 0, 0),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 16, right: 16, bottom: 8, top: 16),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: <Widget>[
+                                Text(
+                                  rentValue.toString() + '\u{20AC}',
+                                  textAlign: TextAlign.left,
+                                  style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 24),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                                child: Text(
-                                  "${currentAnnounce!['price']}\u{20AC}",
-                                  style: const TextStyle(
+                                    fontSize: 22,
                                     color: MyTheme.blue3,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20
+                                  ),
+                                ),
+                                Container(
+                                  child: Row(
+                                    children: <Widget>[
+                                      Text(
+                                        '0',
+                                        textAlign: TextAlign.left,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w200,
+                                          fontSize: 22,
+                                          letterSpacing: 0.27,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                      Icon(
+                                        Icons.star,
+                                        color: MyTheme.blue3,
+                                        size: 24,
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                          AnimatedOpacity(
+                            duration: const Duration(milliseconds: 500),
+                            opacity: opacity1,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Row(
+                                children: <Widget>[
+                                  getTimeBoxUI(roommatesNumber.toString(),
+                                      'Colocataires'),
+                                  getTimeBoxUI(
+                                      depositAmount.toString() + '\u{20AC}',
+                                      'Caution'),
+                                  getTimeBoxUI('3', 'Chambres'),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 500),
+                              opacity: opacity2,
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 16, right: 16, top: 8, bottom: 8),
+                                child: Text(
+                                  description,
+                                  textAlign: TextAlign.justify,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w200,
+                                    fontSize: 14,
+                                    letterSpacing: 0.27,
+                                    color: Color.fromARGB(255, 26, 26, 26),
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                        Divider(color: Colors.black, indent: 20,endIndent: 20,),
-                        Container(
-                          height: 50,
-                          alignment: Alignment.centerLeft,
-                          margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              buildButton(context, currentAnnounce['max_roomates'].toString(), 'Colocataires'),
-                              buildDivider(),
-                              buildButton(context, "${currentAnnounce['deposit_amount']}\u{20AC}", 'Caution'),
-                              buildDivider(),
-                              buildButton(context, '3', 'Chambres'),
-                            ],
-                          ),
-                        ),
-                        Divider(color: Colors.black, indent: 20,endIndent: 20,),
-                        Container(
-                          height: 25,
-                          margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
-                          alignment: Alignment.center,
-                          child: const SingleChildScrollView(
-                            child: Text(
-                              "Description",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                    color: Color.fromARGB(255, 0, 0, 0),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 24),
                             ),
                           ),
-                        ),
-                        Container(
-                          height: 400,
-                          margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                          alignment: Alignment.center,
-                          child: SingleChildScrollView(
-                            child: Text(
-                              currentAnnounce?['description'],
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Color.fromARGB(255, 0, 0, 0),
-                                fontSize: 15,
+                          AnimatedOpacity(
+                            duration: const Duration(milliseconds: 500),
+                            opacity: opacity3,
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 16, bottom: 16, right: 16),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Container(
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        color: MyTheme.blue3,
+                                        borderRadius: const BorderRadius.all(
+                                          Radius.circular(16.0),
+                                        ),
+                                        boxShadow: <BoxShadow>[
+                                          BoxShadow(
+                                              color: MyTheme.blue3
+                                                  .withOpacity(0.5),
+                                              offset: const Offset(1.1, 1.1),
+                                              blurRadius: 10.0),
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          'Coloc',
+                                          textAlign: TextAlign.left,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 18,
+                                            letterSpacing: 0.0,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                ],
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    );
-                  }),
+                          SizedBox(
+                            height: MediaQuery.of(context).padding.bottom,
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: (MediaQuery.of(context).size.width / 1.2) - 24.0 - 35,
+              right: 35,
+              child: ScaleTransition(
+                alignment: Alignment.center,
+                scale: CurvedAnimation(
+                    parent: animationController!, curve: Curves.fastOutSlowIn),
+                child: Card(
+                  color: MyTheme.blue3,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50.0)),
+                  elevation: 10.0,
+                  child: Container(
+                    width: 60,
+                    height: 60,
+                    child: Center(
+                      child: Icon(
+                        Icons.favorite,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+              child: SizedBox(
+                width: AppBar().preferredSize.height,
+                height: AppBar().preferredSize.height,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius:
+                        BorderRadius.circular(AppBar().preferredSize.height),
+                    child: Icon(
+                      Icons.arrow_back_ios,
+                      color: Colors.black,
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget getTimeBoxUI(String text1, String txt2) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                offset: const Offset(1.1, 1.1),
+                blurRadius: 8.0),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.only(
+              left: 18.0, right: 18.0, top: 12.0, bottom: 12.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                text1,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  letterSpacing: 0.27,
+                  color: MyTheme.blue3,
+                ),
+              ),
+              Text(
+                txt2,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.w200,
+                  fontSize: 14,
+                  letterSpacing: 0.27,
+                  color: Colors.grey,
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
   }
-
-  Widget buildDivider() => Container(
-        height: 24,
-        child: VerticalDivider(),
-      );
-
-  Widget buildButton(BuildContext context, String value, String text) =>
-      MaterialButton(
-        padding: EdgeInsets.symmetric(vertical: 4),
-        onPressed: () {},
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              value,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: MyTheme.blue3),
-            ),
-            SizedBox(height: 2),
-            Text(
-              text,
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      );
 }
