@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:dropdown_textfield/dropdown_textfield.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class HomeOwner extends StatefulWidget {
   const HomeOwner({Key? key}) : super(key: key);
@@ -16,6 +18,9 @@ class HomeOwner extends StatefulWidget {
 
 class _HomeOwnerState extends State<HomeOwner> {
   final _formKey = GlobalKey<FormState>();
+  List<File?> _images = [null, null, null];
+  final double _imageSize = 100;
+
   late QuerySnapshot _snapshot;
   // String _searchText = '';
   late SingleValueDropDownController _cntCity;
@@ -41,19 +46,22 @@ class _HomeOwnerState extends State<HomeOwner> {
   @override
   void initState() {
     super.initState();
-    _loadCityOptions();
     _loadPropertyTypeOptions();
+    _loadCityOptions();
     _cntCity = SingleValueDropDownController();
     _cntPropertyType = SingleValueDropDownController();
   }
 
   Future<void> _loadCityOptions() async {
     final querySnapshot =
+        // await FirebaseFirestore.instance.collection('ma_collection').get();
         await FirebaseFirestore.instance.collection('city').get();
 
     List<DropDownValueModel> options = querySnapshot.docs.map((doc) {
       final data = doc.data() as Map<String, dynamic>;
+      // final cityName = data['nom_de_la_commune'] as String;
       final cityName = data['city_name'] as String;
+      // final postCode = data['code_postal'] as String;
       final postCode = data['post_code'] as String;
       final id = doc.id;
       return DropDownValueModel(
@@ -84,6 +92,20 @@ class _HomeOwnerState extends State<HomeOwner> {
     setState(() {
       _optionsPropertyType = options;
     });
+  }
+
+  Future<void> _getImage(int index) async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+    // final pickedFile = await ImagePicker().getImage(source: ImageSource.gallery);
+
+    print(pickedFile != null);
+    if (pickedFile != null) {
+      print("ca passsssse");
+      setState(() {
+        _images[index] = File(pickedFile.path);
+      });
+    }
   }
 
   @override
@@ -219,39 +241,14 @@ class _HomeOwnerState extends State<HomeOwner> {
                           const SizedBox(height: 10),
                           TextFormField(
                             controller: _descriptionController,
+                            minLines: 2,
+                            maxLines: 3,
                             decoration: const InputDecoration(
                               labelText: 'Description',
                             ),
                             validator: (value) {
                               if (value!.isEmpty) {
                                 return 'La description ne peux pas être vide';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _descriptionController,
-                            decoration: const InputDecoration(
-                              labelText: 'Adresse',
-                            ),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'L\'adresse ne peux pas être vide';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _roomNumberController,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Nombre de chambre',
-                            ),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'Le nombre de chambre est incorrect';
                               }
                               return null;
                             },
@@ -270,27 +267,29 @@ class _HomeOwnerState extends State<HomeOwner> {
                           //     return null;
                           //   },
                           // ),
-                          DropDownTextField(
-                            // initialValue: "name4",
-                            controller: _cntPropertyType,
-                            clearOption: true,
-                            // enableSearch: true,
-                            // dropdownColor: Colors.green,
-                            searchDecoration: const InputDecoration(
-                                hintText: "Type de propriété"),
+                          TextFormField(
+                            controller: _descriptionController,
+                            decoration: const InputDecoration(
+                              labelText: 'Adresse',
+                            ),
                             validator: (value) {
-                              if (value == null) {
-                                return "Champ obligatoire";
-                              } else {
-                                return null;
+                              if (value!.isEmpty) {
+                                return 'L\'adresse ne peux pas être vide';
                               }
+                              return null;
                             },
-                            dropDownItemCount: 6,
-                            dropDownList: _optionsPropertyType,
-                            onChanged: (val) {},
                           ),
                           const SizedBox(height: 10),
                           DropDownTextField(
+                            textFieldDecoration: InputDecoration(
+                              hintText: "Ville",
+                            ),
+                            searchDecoration: InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                  vertical: 12.0,
+                                ),
+                                hintText: "Ville"),
                             clearOption: false,
                             textFieldFocusNode: textFieldFocusNode,
                             searchFocusNode: searchFocusNode,
@@ -302,12 +301,82 @@ class _HomeOwnerState extends State<HomeOwner> {
                             dropDownList: _optionsCity,
                             onChanged: (val) {},
                             validator: (value) {
-                              if (value == null) {
-                                return "Champ obligatoire";
+                              if (value == null || value.isEmpty) {
+                                return "Choisissez une ville";
                               } else {
                                 return null;
                               }
                             },
+                          ),
+                          const SizedBox(height: 10),
+                          DropDownTextField(
+                            // initialValue: "name4",
+                            controller: _cntPropertyType,
+                            clearOption: true,
+                            // enableSearch: true,
+                            // dropdownColor: Colors.green,
+                            searchDecoration: InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                                vertical: 12.0,
+                              ),
+                              hintText: "Type de propriété",
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Choisissez le type de votre propriété";
+                              } else {
+                                return null;
+                              }
+                            },
+                            dropDownItemCount: 6,
+                            dropDownList: _optionsPropertyType,
+                            onChanged: (val) {},
+                            textFieldDecoration: InputDecoration(
+                              hintText: "Type de propriété",
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _roomNumberController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Nombre de chambre',
+                            ),
+                            validator: (value) {
+                              if (value!.isEmpty) {
+                                return 'Le nombre de chambre est incorrect';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 10),
+                          GridView.count(
+                            crossAxisCount: 3,
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            children: List.generate(
+                              3,
+                              (index) => GestureDetector(
+                                onTap: () => _getImage(index),
+                                child: Container(
+                                  width: _imageSize,
+                                  height: _imageSize,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        width: 1, color: Colors.grey),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: _images[index] != null
+                                      ? Image.file(
+                                          _images[index]!,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Icon(Icons.camera_alt,
+                                          color: Colors.grey),
+                                ),
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 20),
                           ElevatedButton(
