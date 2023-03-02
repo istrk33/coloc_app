@@ -68,6 +68,7 @@ class _AnnouncePageState extends State<AnnouncePage>
         .doc(widget.announceId)
         .get();
     imgUrl = announceData.data()?['img_url'];
+    print(imgUrl);
     rentValue = announceData.data()?['price'];
     roommatesNumber = announceData.data()?['max_roomates'];
     depositAmount = announceData.data()?['deposit_amount'];
@@ -90,7 +91,13 @@ class _AnnouncePageState extends State<AnnouncePage>
               children: <Widget>[
                 AspectRatio(
                   aspectRatio: 1.2,
-                  child: Image.network(imgUrl, fit: BoxFit.cover),
+                  child: Image.network(
+                    imgUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Text('no url specified');
+                    },
+                  ),
                 ),
               ],
             ),
