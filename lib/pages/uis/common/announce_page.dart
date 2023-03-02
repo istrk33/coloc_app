@@ -204,20 +204,22 @@ class _AnnouncePageState extends State<AnnouncePage>
                             ),
                           ),
                           Expanded(
-                            child: AnimatedOpacity(
-                              duration: const Duration(milliseconds: 500),
-                              opacity: opacity2,
-                              child: Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 16, right: 16, top: 8, bottom: 8),
-                                child: Text(
-                                  description,
-                                  textAlign: TextAlign.justify,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w200,
-                                    fontSize: 14,
-                                    letterSpacing: 0.27,
-                                    color: Color.fromARGB(255, 26, 26, 26),
+                            child: SingleChildScrollView(
+                              child: AnimatedOpacity(
+                                duration: const Duration(milliseconds: 500),
+                                opacity: opacity2,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 16, right: 16, top: 8, bottom: 8),
+                                  child: Text(
+                                    description,
+                                    textAlign: TextAlign.justify,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w200,
+                                      fontSize: 14,
+                                      letterSpacing: 0.27,
+                                      color: Color.fromARGB(255, 26, 26, 26),
+                                    ),
                                   ),
                                 ),
                               ),
