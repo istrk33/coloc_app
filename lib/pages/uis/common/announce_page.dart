@@ -68,6 +68,7 @@ class _AnnouncePageState extends State<AnnouncePage>
         .doc(widget.announceId)
         .get();
     imgUrl = announceData.data()?['img_url'];
+    print(imgUrl);
     rentValue = announceData.data()?['price'];
     roommatesNumber = announceData.data()?['max_roomates'];
     depositAmount = announceData.data()?['deposit_amount'];
@@ -90,7 +91,13 @@ class _AnnouncePageState extends State<AnnouncePage>
               children: <Widget>[
                 AspectRatio(
                   aspectRatio: 1.2,
-                  child: Image.network(imgUrl, fit: BoxFit.cover),
+                  child: Image.network(
+                    imgUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Text('no url specified');
+                    },
+                  ),
                 ),
               ],
             ),
@@ -197,20 +204,22 @@ class _AnnouncePageState extends State<AnnouncePage>
                             ),
                           ),
                           Expanded(
-                            child: AnimatedOpacity(
-                              duration: const Duration(milliseconds: 500),
-                              opacity: opacity2,
-                              child: Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 16, right: 16, top: 8, bottom: 8),
-                                child: Text(
-                                  description,
-                                  textAlign: TextAlign.justify,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w200,
-                                    fontSize: 14,
-                                    letterSpacing: 0.27,
-                                    color: Color.fromARGB(255, 26, 26, 26),
+                            child: SingleChildScrollView(
+                              child: AnimatedOpacity(
+                                duration: const Duration(milliseconds: 500),
+                                opacity: opacity2,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 16, right: 16, top: 8, bottom: 8),
+                                  child: Text(
+                                    description,
+                                    textAlign: TextAlign.justify,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w200,
+                                      fontSize: 14,
+                                      letterSpacing: 0.27,
+                                      color: Color.fromARGB(255, 26, 26, 26),
+                                    ),
                                   ),
                                 ),
                               ),

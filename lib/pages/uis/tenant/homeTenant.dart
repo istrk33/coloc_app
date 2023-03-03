@@ -41,7 +41,7 @@ class HomeTenant extends StatelessWidget {
                         width: double.infinity,
                         margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                          color: Color.fromARGB(255, 242, 242, 242),
+                          color: MyTheme.white,
                           borderRadius: BorderRadius.circular(25),
                         ),
                         child: Stack(
