@@ -1,13 +1,11 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:coloc_app/pages/uis/common/profile.dart';
 import 'package:coloc_app/themes/color.dart';
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:dropdown_textfield/dropdown_textfield.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
+import 'propertyImagePicker.dart';
 
 class HomeOwner extends StatefulWidget {
   const HomeOwner({Key? key}) : super(key: key);
@@ -19,19 +17,19 @@ class HomeOwner extends StatefulWidget {
 class _HomeOwnerState extends State<HomeOwner> {
   final _formKey = GlobalKey<FormState>();
   List<File?> _images = [null, null, null];
-  final double _imageSize = 100;
-
-  late QuerySnapshot _snapshot;
-  // String _searchText = '';
   late SingleValueDropDownController _cntCity;
   late SingleValueDropDownController _cntPropertyType;
   late List<DropDownValueModel> _optionsCity;
   late List<DropDownValueModel> _optionsPropertyType;
+  String? _selectedCityUid;
+  String? _selectedPropertyTypeUid;
   FocusNode searchFocusNode = FocusNode();
   FocusNode textFieldFocusNode = FocusNode();
   final _propertyNameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _addressController = TextEditingController();
   final _roomNumberController = TextEditingController();
+  final _surfaceController = TextEditingController();
 
   @override
   void dispose() {
@@ -39,7 +37,9 @@ class _HomeOwnerState extends State<HomeOwner> {
     _cntPropertyType.dispose();
     _propertyNameController.dispose();
     _descriptionController.dispose();
+    _addressController.dispose();
     _roomNumberController.dispose();
+    _surfaceController.dispose();
     super.dispose();
   }
 
@@ -94,18 +94,9 @@ class _HomeOwnerState extends State<HomeOwner> {
     });
   }
 
-  Future<void> _getImage(int index) async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-    // final pickedFile = await ImagePicker().getImage(source: ImageSource.gallery);
-
-    print(pickedFile != null);
-    if (pickedFile != null) {
-      print("ca passsssse");
-      setState(() {
-        _images[index] = File(pickedFile.path);
-      });
-    }
+  dynamic _handleImagesSelected(List<File> images) {
+    // Faites quelque chose avec les images sélectionnées ici
+    _images = images;
   }
 
   @override
@@ -225,7 +216,7 @@ class _HomeOwnerState extends State<HomeOwner> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 10),
                           TextFormField(
                             controller: _propertyNameController,
                             decoration: const InputDecoration(
@@ -254,21 +245,8 @@ class _HomeOwnerState extends State<HomeOwner> {
                             },
                           ),
                           const SizedBox(height: 10),
-                          // TextFormField(
-                          //   controller: _roomNumberController,
-                          //   keyboardType: TextInputType.number,
-                          //   decoration: const InputDecoration(
-                          //     labelText: 'Type de logement',
-                          //   ),
-                          //   validator: (value) {
-                          //     if (value!.isEmpty) {
-                          //       return 'Le type de logement est incorrect';
-                          //     }
-                          //     return null;
-                          //   },
-                          // ),
                           TextFormField(
-                            controller: _descriptionController,
+                            controller: _addressController,
                             decoration: const InputDecoration(
                               labelText: 'Adresse',
                             ),
@@ -299,7 +277,11 @@ class _HomeOwnerState extends State<HomeOwner> {
                             enableSearch: true,
                             searchKeyboardType: TextInputType.text,
                             dropDownList: _optionsCity,
-                            onChanged: (val) {},
+                            onChanged: (val) {
+                              setState(() {
+                                _selectedCityUid = val.value;
+                              });
+                            },
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return "Choisissez une ville";
@@ -331,59 +313,92 @@ class _HomeOwnerState extends State<HomeOwner> {
                             },
                             dropDownItemCount: 6,
                             dropDownList: _optionsPropertyType,
-                            onChanged: (val) {},
+                            onChanged: (val) {
+                              setState(() {
+                                _selectedPropertyTypeUid = val.value;
+                              });
+                            },
                             textFieldDecoration: InputDecoration(
                               hintText: "Type de propriété",
                             ),
                           ),
                           const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _roomNumberController,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Nombre de chambre',
-                            ),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'Le nombre de chambre est incorrect';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 10),
-                          GridView.count(
-                            crossAxisCount: 3,
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            children: List.generate(
-                              3,
-                              (index) => GestureDetector(
-                                onTap: () => _getImage(index),
-                                child: Container(
-                                  width: _imageSize,
-                                  height: _imageSize,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        width: 1, color: Colors.grey),
-                                    borderRadius: BorderRadius.circular(8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _roomNumberController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Nombre de chambre',
                                   ),
-                                  child: _images[index] != null
-                                      ? Image.file(
-                                          _images[index]!,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Icon(Icons.camera_alt,
-                                          color: Colors.grey),
+                                  validator: (value) {
+                                    if (value!.isEmpty) {
+                                      return 'Nombre de chambre incorrect';
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ),
-                            ),
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _surfaceController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Surface en m²',
+                                  ),
+                                  validator: (value) {
+                                    if (value!.isEmpty) {
+                                      return 'Valeur incorrecte';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
+                          const SizedBox(height: 10),
+                          PropertyImagePicker(
+                              onImagesSelected: _handleImagesSelected),
                           const SizedBox(height: 20),
                           ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               if (_formKey.currentState!.validate()) {
                                 // Submit form
+                                final CollectionReference<Map<String, dynamic>>
+                                    city = FirebaseFirestore.instance
+                                        .collection('city');
+                                final CollectionReference<Map<String, dynamic>>
+                                    users = FirebaseFirestore.instance
+                                        .collection('Users');
+                                final CollectionReference<Map<String, dynamic>>
+                                    propertyTypes = FirebaseFirestore.instance
+                                        .collection('property_type');
+
+                                final DocumentReference<Map<String, dynamic>>
+                                    userRef =
+                                    users.doc(auth.currentUser!.uid.toString());
+                                final DocumentReference<Map<String, dynamic>>
+                                    cityRef = users.doc(_selectedCityUid);
+                                final DocumentReference<Map<String, dynamic>>
+                                    propertyTypeRef =
+                                    propertyTypes.doc(_selectedPropertyTypeUid);
+
+                                final collectionRef = FirebaseFirestore.instance
+                                    .collection('property');
+                                await collectionRef.add({
+                                  'address': _addressController.text,
+                                  'description': _descriptionController.text,
+                                  'property_name': _propertyNameController.text,
+                                  'room_number': _roomNumberController.text,
+                                  'surface_area': _surfaceController.text,
+                                  'city_id': cityRef,
+                                  'id_owner': userRef,
+                                  'property_type_id': propertyTypeRef,
+                                });
                               }
+                              Navigator.pop(context);
                             },
                             child: const Text('Enregistrer'),
                           ),
