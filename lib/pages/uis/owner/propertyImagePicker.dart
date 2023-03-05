@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class PropertyImagePicker extends StatefulWidget {
+  // final dynamic Function(File) onImagesSelected;
   final dynamic Function(List<File>) onImagesSelected;
 
   PropertyImagePicker({required this.onImagesSelected});
@@ -23,14 +24,19 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
       setState(() {
         _images[index] = File(pickedFile.path);
       });
+      _handleSelection(_images!.where((image) => image != null).toList());
       if (_images[index] == null) {
         print('Erreur: _images[$index] est nul');
       }
     }
   }
 
-  bool _validateImages() {
-    return _images.any((image) => image != null);
+  _handleSelection(List<File?> images) {
+// _handleSelection(File image) {
+    // Faire quelque chose avec les images sélectionnées ici
+    final nonNullableImages = images.whereType<File>().toList();
+    widget.onImagesSelected(
+        nonNullableImages); // Appeler la fonction fournie par le parent avec les images sélectionnées
   }
 
   @override

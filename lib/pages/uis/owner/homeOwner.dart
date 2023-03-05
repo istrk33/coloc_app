@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'propertyImagePicker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_native_image/flutter_native_image.dart';
 
 class HomeOwner extends StatefulWidget {
   const HomeOwner({Key? key}) : super(key: key);
@@ -14,9 +16,10 @@ class HomeOwner extends StatefulWidget {
   _HomeOwnerState createState() => _HomeOwnerState();
 }
 
-class _HomeOwnerState extends State<HomeOwner> {
+class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  List<File?> _images = [null, null, null];
+  List<File?> _images = [];
+  String _imageUrls = "";
   late SingleValueDropDownController _cntCity;
   late SingleValueDropDownController _cntPropertyType;
   late List<DropDownValueModel> _optionsCity;
@@ -30,6 +33,9 @@ class _HomeOwnerState extends State<HomeOwner> {
   final _addressController = TextEditingController();
   final _roomNumberController = TextEditingController();
   final _surfaceController = TextEditingController();
+  late AnimationController controller;
+  late bool _isLoading;
+  late String searchCity;
 
   @override
   void dispose() {
@@ -40,22 +46,34 @@ class _HomeOwnerState extends State<HomeOwner> {
     _addressController.dispose();
     _roomNumberController.dispose();
     _surfaceController.dispose();
+    controller.dispose();
     super.dispose();
   }
 
   @override
   void initState() {
-    super.initState();
+    searchCity="";
     _loadPropertyTypeOptions();
-    _loadCityOptions();
+    _loadCityOptions(searchCity);
     _cntCity = SingleValueDropDownController();
     _cntPropertyType = SingleValueDropDownController();
+    controller = AnimationController(
+      /// [AnimationController]s can be created with `vsync: this` because of
+      /// [TickerProviderStateMixin].
+      vsync: this,
+      duration: const Duration(seconds: 5),
+    )..addListener(() {
+        setState(() {});
+      });
+    controller.repeat(reverse: true);
+    _isLoading = false;
+    super.initState();
   }
 
-  Future<void> _loadCityOptions() async {
+  Future<void> _loadCityOptions(cityName) async {
     final querySnapshot =
         // await FirebaseFirestore.instance.collection('ma_collection').get();
-        await FirebaseFirestore.instance.collection('city').get();
+        await FirebaseFirestore.instance.collection('city').where("city_name", isEqualTo: "ville").limit(15).get();
 
     List<DropDownValueModel> options = querySnapshot.docs.map((doc) {
       final data = doc.data() as Map<String, dynamic>;
@@ -94,9 +112,33 @@ class _HomeOwnerState extends State<HomeOwner> {
     });
   }
 
-  dynamic _handleImagesSelected(List<File> images) {
-    // Faites quelque chose avec les images sélectionnées ici
+  Future<void> _handleImagesSelected(List<File> images) async {
     _images = images;
+  }
+
+  Future<File?> compressImage(File file) async {
+    File compressedFile = await FlutterNativeImage.compressImage(
+      file.path,
+      quality: 50,
+      percentage: 50,
+    );
+    return compressedFile;
+  }
+
+  Future<void> _uploadImage(File image) async {
+    final storageRef = FirebaseStorage.instance.ref();
+    final imageRef =
+        storageRef.child('images/${DateTime.now().millisecondsSinceEpoch}.jpg');
+    final uploadTask = imageRef.putFile(image);
+    final snapshot = await uploadTask;
+    final downloadUrl = await snapshot.ref.getDownloadURL();
+    setState(() {
+      if (_imageUrls.isNotEmpty) {
+        _imageUrls += '|$downloadUrl';
+      } else {
+        _imageUrls = downloadUrl;
+      }
+    });
   }
 
   @override
@@ -294,7 +336,7 @@ class _HomeOwnerState extends State<HomeOwner> {
                           DropDownTextField(
                             // initialValue: "name4",
                             controller: _cntPropertyType,
-                            clearOption: true,
+                            clearOption: false,
                             // enableSearch: true,
                             // dropdownColor: Colors.green,
                             searchDecoration: InputDecoration(
@@ -365,6 +407,29 @@ class _HomeOwnerState extends State<HomeOwner> {
                           ElevatedButton(
                             onPressed: () async {
                               if (_formKey.currentState!.validate()) {
+                                // _images.forEach((element) async {
+                                //   // final result = await _compressImage(element!);
+                                //   await _uploadImage(element!);
+                                // });
+                                final downloadUrls = await Future.wait(
+                                    _images.map((image) async {
+                                  setState(() => {_isLoading = true});
+                                  final compressedImage =
+                                      await compressImage(image!);
+                                  final imageUrl =
+                                      await _uploadImage(compressedImage!);
+                                  return imageUrl;
+                                }));
+
+                                final imagesUrl = downloadUrls.join('|');
+                                // for (int i = 0; i < _images.length; i++) {
+                                //   File? result =
+                                //       await _compressImage(_images[i]);
+                                //   if (result != null) {
+                                //     await _uploadImage(result);
+                                //   }
+                                // }
+                                // https://api.opencagedata.com/geocode/v1/json?q=15%20rue%20de%20naudet%2C%2033170%20Gradignan%2C%20France&key=03c48dae07364cabb7f121d8c1519492&no_annotations=1&language=fr
                                 // Submit form
                                 final CollectionReference<Map<String, dynamic>>
                                     city = FirebaseFirestore.instance
@@ -380,13 +445,24 @@ class _HomeOwnerState extends State<HomeOwner> {
                                     userRef =
                                     users.doc(auth.currentUser!.uid.toString());
                                 final DocumentReference<Map<String, dynamic>>
-                                    cityRef = users.doc(_selectedCityUid);
+                                    cityRef = city.doc(_selectedCityUid);
                                 final DocumentReference<Map<String, dynamic>>
                                     propertyTypeRef =
                                     propertyTypes.doc(_selectedPropertyTypeUid);
 
                                 final collectionRef = FirebaseFirestore.instance
                                     .collection('property');
+                                // await collectionRef.add({
+                                //   'address': _addressController.text,
+                                //   'description': _descriptionController.text,
+                                //   'property_name': _propertyNameController.text,
+                                //   'room_number': _roomNumberController.text,
+                                //   'surface_area': _surfaceController.text,
+                                //   'city_id': cityRef,
+                                //   'id_owner': userRef,
+                                //   'property_type_id': propertyTypeRef,
+                                //   'imagesUrl': _imageUrls
+                                // });
                                 await collectionRef.add({
                                   'address': _addressController.text,
                                   'description': _descriptionController.text,
@@ -396,11 +472,18 @@ class _HomeOwnerState extends State<HomeOwner> {
                                   'city_id': cityRef,
                                   'id_owner': userRef,
                                   'property_type_id': propertyTypeRef,
+                                  'imagesUrl': imagesUrl
                                 });
                               }
+                               setState(() => {_isLoading = false});
                               Navigator.pop(context);
                             },
-                            child: const Text('Enregistrer'),
+                            child: (!_isLoading)
+                                ? const Text('Enregistrer')
+                                : CircularProgressIndicator(
+                                    value: controller.value,
+                                    semanticsLabel: 'Chargement',
+                                  ),
                           ),
                         ],
                       ),
