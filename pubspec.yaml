@@ -53,6 +53,7 @@ dependencies:
   timeago: ^3.3.0
   dropdown_textfield: ^1.0.8
   flutter_native_image: ^0.0.6+1
+  drop_down_list: ^0.0.4
   # dependencies:
   #fluttertoast: ^8.1.2
 

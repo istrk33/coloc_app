@@ -8,6 +8,7 @@ import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'propertyImagePicker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
+// import 'package:animated_custom_dropdown/custom_dropdown.dart';
 
 class HomeOwner extends StatefulWidget {
   const HomeOwner({Key? key}) : super(key: key);
@@ -52,7 +53,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
 
   @override
   void initState() {
-    searchCity="";
+    searchCity = "";
     _loadPropertyTypeOptions();
     _loadCityOptions(searchCity);
     _cntCity = SingleValueDropDownController();
@@ -73,14 +74,19 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
   Future<void> _loadCityOptions(cityName) async {
     final querySnapshot =
         // await FirebaseFirestore.instance.collection('ma_collection').get();
-        await FirebaseFirestore.instance.collection('city').where("city_name", isEqualTo: "ville").limit(15).get();
+        await FirebaseFirestore.instance
+            .collection('city')
+            .where("nom_de_la_commune", isGreaterThanOrEqualTo: searchCity)
+            .limit(15)
+            .get();
+    // await FirebaseFirestore.instance.collection('city').where("city_name", isGreaterThanOrEqualTo: searchCity).limit(15).get();
 
     List<DropDownValueModel> options = querySnapshot.docs.map((doc) {
       final data = doc.data() as Map<String, dynamic>;
-      // final cityName = data['nom_de_la_commune'] as String;
-      final cityName = data['city_name'] as String;
-      // final postCode = data['code_postal'] as String;
-      final postCode = data['post_code'] as String;
+      final cityName = data['nom_de_la_commune'] as String;
+      // final cityName = data['city_name'] as String;
+      final postCode = data['code_postal'] as String;
+      // final postCode = data['post_code'] as String;
       final id = doc.id;
       return DropDownValueModel(
         name: "${cityName}, ${postCode}",
@@ -300,38 +306,41 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                             },
                           ),
                           const SizedBox(height: 10),
-                          DropDownTextField(
-                            textFieldDecoration: InputDecoration(
-                              hintText: "Ville",
-                            ),
-                            searchDecoration: InputDecoration(
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 16.0,
-                                  vertical: 12.0,
-                                ),
-                                hintText: "Ville"),
-                            clearOption: false,
-                            textFieldFocusNode: textFieldFocusNode,
-                            searchFocusNode: searchFocusNode,
-                            // searchAutofocus: true,
-                            dropDownItemCount: 8,
-                            searchShowCursor: false,
-                            enableSearch: true,
-                            searchKeyboardType: TextInputType.text,
-                            dropDownList: _optionsCity,
-                            onChanged: (val) {
-                              setState(() {
-                                _selectedCityUid = val.value;
-                              });
-                            },
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return "Choisissez une ville";
-                              } else {
-                                return null;
-                              }
-                            },
-                          ),
+
+                          // DropDownTextField(
+                          //   textFieldDecoration: InputDecoration(
+                          //     hintText: "Ville",
+                          //   ),
+                          //   searchDecoration: InputDecoration(
+                          //     contentPadding: EdgeInsets.symmetric(
+                          //       horizontal: 16.0,
+                          //       vertical: 12.0,
+                          //     ),
+                          //     hintText: "Ville",
+                          //   ),
+                          //   clearOption: false,
+                          //   textFieldFocusNode: textFieldFocusNode,
+                          //   searchFocusNode: searchFocusNode,
+                          //   // searchAutofocus: true,
+                          //   dropDownItemCount: 8,
+                          //   searchShowCursor: false,
+                          //   enableSearch: true,
+                          //   searchKeyboardType: TextInputType.text,
+                          //   dropDownList: _optionsCity,
+                          //   onChanged: (val) {
+                          //     setState(() {
+                          //       _selectedCityUid = val.value;
+                          //     });
+                          //   },
+
+                          //   validator: (value) {
+                          //     if (value == null || value.isEmpty) {
+                          //       return "Choisissez une ville";
+                          //     } else {
+                          //       return null;
+                          //     }
+                          //   },
+                          // ),
                           const SizedBox(height: 10),
                           DropDownTextField(
                             // initialValue: "name4",
@@ -475,7 +484,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                   'imagesUrl': imagesUrl
                                 });
                               }
-                               setState(() => {_isLoading = false});
+                              setState(() => {_isLoading = false});
                               Navigator.pop(context);
                             },
                             child: (!_isLoading)
