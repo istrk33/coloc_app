@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:coloc_app/pages/uis/common/profile.dart';
@@ -8,7 +9,7 @@ import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'propertyImagePicker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
-// import 'package:animated_custom_dropdown/custom_dropdown.dart';
+import 'package:http/http.dart' as http;
 
 class HomeOwner extends StatefulWidget {
   const HomeOwner({Key? key}) : super(key: key);
@@ -23,7 +24,8 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
   String _imageUrls = "";
   late SingleValueDropDownController _cntCity;
   late SingleValueDropDownController _cntPropertyType;
-  late List<DropDownValueModel> _optionsCity;
+  final TextEditingController _typeAheadController = TextEditingController();
+  late Future<List<Map<String, String>>> _optionsCity;
   late List<DropDownValueModel> _optionsPropertyType;
   String? _selectedCityUid;
   String? _selectedPropertyTypeUid;
@@ -34,9 +36,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
   final _addressController = TextEditingController();
   final _roomNumberController = TextEditingController();
   final _surfaceController = TextEditingController();
-  late AnimationController controller;
-  late bool _isLoading;
-  late String searchCity;
+  late String _searchCity;
 
   @override
   void dispose() {
@@ -47,56 +47,54 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
     _addressController.dispose();
     _roomNumberController.dispose();
     _surfaceController.dispose();
-    controller.dispose();
     super.dispose();
   }
 
   @override
   void initState() {
-    searchCity = "";
+    _searchCity = "";
     _loadPropertyTypeOptions();
-    _loadCityOptions(searchCity);
+    // _loadCityOptions(_searchCity);
     _cntCity = SingleValueDropDownController();
     _cntPropertyType = SingleValueDropDownController();
-    controller = AnimationController(
-      /// [AnimationController]s can be created with `vsync: this` because of
-      /// [TickerProviderStateMixin].
-      vsync: this,
-      duration: const Duration(seconds: 5),
-    )..addListener(() {
-        setState(() {});
-      });
-    controller.repeat(reverse: true);
-    _isLoading = false;
     super.initState();
   }
 
   Future<void> _loadCityOptions(cityName) async {
-    final querySnapshot =
-        // await FirebaseFirestore.instance.collection('ma_collection').get();
-        await FirebaseFirestore.instance
-            .collection('city')
-            .where("nom_de_la_commune", isGreaterThanOrEqualTo: searchCity)
-            .limit(15)
-            .get();
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('city')
+        .where("nom_de_la_commune", isGreaterThanOrEqualTo: _searchCity)
+        .limit(7)
+        .get();
     // await FirebaseFirestore.instance.collection('city').where("city_name", isGreaterThanOrEqualTo: searchCity).limit(15).get();
 
-    List<DropDownValueModel> options = querySnapshot.docs.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      final cityName = data['nom_de_la_commune'] as String;
-      // final cityName = data['city_name'] as String;
-      final postCode = data['code_postal'] as String;
-      // final postCode = data['post_code'] as String;
-      final id = doc.id;
-      return DropDownValueModel(
-        name: "${cityName}, ${postCode}",
-        value: id,
-        toolTipMsg: "",
-      );
-    }).toList();
-    setState(() {
-      _optionsCity = options;
-    });
+    // List<DropDownValueModel> options = querySnapshot.docs.map((doc) {
+    //   final data = doc.data() as Map<String, dynamic>;
+    //   final cityName = data['nom_de_la_commune'] as String;
+    //   // final cityName = data['city_name'] as String;
+    //   final postCode = data['code_postal'] as String;
+    //   // final postCode = data['post_code'] as String;
+    //   final id = doc.id;
+    //   return DropDownValueModel(
+    //     name: "${cityName}, ${postCode}",
+    //     value: id,
+    //     toolTipMsg: "",
+    //   );
+    // }).toList();
+    // setState(() {
+    //   _optionsCity = options;
+    // });
+  }
+
+  Future<String> getJsonData(String url) async {
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      print(response.body);
+    } else {
+      print('Request failed with status: ${response.statusCode}');
+    }
+    return response.body;
   }
 
   Future<void> _loadPropertyTypeOptions() async {
@@ -306,7 +304,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                             },
                           ),
                           const SizedBox(height: 10),
-
                           // DropDownTextField(
                           //   textFieldDecoration: InputDecoration(
                           //     hintText: "Ville",
@@ -322,13 +319,14 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                           //   textFieldFocusNode: textFieldFocusNode,
                           //   searchFocusNode: searchFocusNode,
                           //   // searchAutofocus: true,
-                          //   dropDownItemCount: 8,
+                          //   dropDownItemCount: 3,
                           //   searchShowCursor: false,
                           //   enableSearch: true,
                           //   searchKeyboardType: TextInputType.text,
                           //   dropDownList: _optionsCity,
                           //   onChanged: (val) {
                           //     setState(() {
+                          //       print("iussssss");
                           //       _selectedCityUid = val.value;
                           //     });
                           //   },
@@ -341,7 +339,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                           //     }
                           //   },
                           // ),
-                          const SizedBox(height: 10),
+                          // const SizedBox(height: 10),
                           DropDownTextField(
                             // initialValue: "name4",
                             controller: _cntPropertyType,
@@ -415,14 +413,21 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                           const SizedBox(height: 20),
                           ElevatedButton(
                             onPressed: () async {
+                              // Rue%20de%20Guyenne%2C%2033600%20Pessac%2C%20France
                               if (_formKey.currentState!.validate()) {
+                                String url =
+                                    "https://api.opencagedata.com/geocode/v1/json?q=" +
+                                        Uri.encodeFull(
+                                            _addressController.text) +
+                                        "&key=03c48dae07364cabb7f121d8c1519492&no_annotations=1&language=fr";
+                                var json=jsonDecode(getJsonData(url) as String);
+                                print(json.result);
                                 // _images.forEach((element) async {
                                 //   // final result = await _compressImage(element!);
                                 //   await _uploadImage(element!);
                                 // });
                                 final downloadUrls = await Future.wait(
                                     _images.map((image) async {
-                                  setState(() => {_isLoading = true});
                                   final compressedImage =
                                       await compressImage(image!);
                                   final imageUrl =
@@ -484,15 +489,11 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                   'imagesUrl': imagesUrl
                                 });
                               }
-                              setState(() => {_isLoading = false});
                               Navigator.pop(context);
                             },
-                            child: (!_isLoading)
-                                ? const Text('Enregistrer')
-                                : CircularProgressIndicator(
-                                    value: controller.value,
-                                    semanticsLabel: 'Chargement',
-                                  ),
+                            child: const Text(
+                              'Enregistrer',
+                            ),
                           ),
                         ],
                       ),
