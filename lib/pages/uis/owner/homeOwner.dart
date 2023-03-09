@@ -8,8 +8,8 @@ import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'propertyImagePicker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
-import 'package:http/http.dart' as http;
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
+import 'package:http/http.dart' as http;
 
 class HomeOwner extends StatefulWidget {
   const HomeOwner({Key? key}) : super(key: key);
@@ -105,25 +105,40 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                     primary: false,
                     itemCount: snap.length,
                     itemBuilder: (context, index) {
-                      return Container(
-                        height: 100,
+                      String imgUrl = snap[index]['imagesUrl'].toString().split('|')[0];
+                    return InkWell(
+                      child: Container(
+                        height: 250,
                         width: double.infinity,
                         margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                          color: MyTheme.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 0.5,
-                            ),
-                          ],
+                          color:  Color(0x80ffffff),
+                          borderRadius: BorderRadius.circular(25),
                         ),
                         child: Stack(
                           children: [
                             Container(
-                              margin: const EdgeInsets.fromLTRB(20, 10, 0, 0),
-                              alignment: Alignment.topLeft,
+                              margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                              alignment: Alignment.topCenter,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(8),
+                                    topRight: Radius.circular(8)),
+                                child: Container(
+                                  height: 125,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                      image: NetworkImage(imgUrl),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                              alignment: Alignment.center,
                               child: Text(
                                 snap[index]['property_name'],
                                 style: const TextStyle(
@@ -133,10 +148,10 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                               ),
                             ),
                             Container(
-                              margin: const EdgeInsets.fromLTRB(20, 30, 50, 0),
-                              alignment: Alignment.topLeft,
+                              margin: const EdgeInsets.fromLTRB(0, 100, 0, 0),
+                              alignment: Alignment.center,
                               child: Text(
-                                '-' + snap[index]['description'],
+                                '${snap[index]['description']}',
                                 style: const TextStyle(
                                   color: Colors.black54,
                                   fontSize: 12,
@@ -144,20 +159,45 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                               ),
                             ),
                             Container(
-                              margin: const EdgeInsets.only(right: 15),
-                              alignment: Alignment.centerRight,
+                              margin: const EdgeInsets.only(bottom: 5),
+                              alignment: Alignment.bottomCenter,
                               child: Text(
-                                snap[index]['room_number'].toString() +
-                                    "\u{20AC}",
+                                snap[index]['room_number'].toString(),
                                 style: TextStyle(
                                   color: Colors.green.withOpacity(0.7),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
+                            // Container(
+                            //   margin: const EdgeInsets.fromLTRB(0, 0, 10, 5),
+                            //   alignment: Alignment.bottomRight,
+                            //   child: Text(
+                            //     timeago
+                            //         .format(
+                            //             snap[index]['date_publication']
+                            //                 .toDate(),
+                            //             locale: locale)
+                            //         .toString(),
+                            //     style: const TextStyle(
+                            //       color: Color.fromARGB(255, 24, 1, 1),
+                            //       fontSize: 12,
+                            //     ),
+                            //   ),
+                            // ),
                           ],
                         ),
-                      );
+                      ),
+                      onTap: () {
+                        // Navigator.of(context).push(
+                        //   MaterialPageRoute(
+                        //       builder: (context) => (AnnouncePage(
+                        //           announceId: snap[index].id,
+                        //           announceTitle:
+                        //               snap[index]['title'].toString()))),
+                        // );
+                      },
+                    );
                     },
                   );
                 } else {
@@ -302,52 +342,52 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                           //   },
                           // ),
                           
-                          // AutoCompleteTextField(
-                          //   key: _autoCompleteKey,
-                          //   clearOnSubmit: false,
-                          //   suggestions: _optionsCity,
-                          //   decoration: InputDecoration(
-                          //     hintText: 'Ville',
-                          //     // border: OutlineInputBorder(),
-                          //   ),
-                          //   itemBuilder: (BuildContext context, String option) {
-                          //     return ListTile(
-                          //       title: Text(option),
-                          //     );
-                          //   },
-                          //   itemFilter: (String option, String input) => option
-                          //       .toLowerCase()
-                          //       .startsWith(input.toLowerCase()),
-                          //   itemSorter: (String a, String b) => a.compareTo(b),
-                          //   itemSubmitted: (String value) {
-                          //     setState(() {
-                          //       _selectedCityId = _optionsCity
-                          //           .indexWhere((element) => element == value);
-                          //     });
-                          //   },
-                          //   textChanged: (String value) {
-                          //     // Rafraîchir la liste des options à chaque fois que le texte est modifié
-                          //     _cityCollectionRef
-                          //         .where("nom_de_la_commune",
-                          //             isGreaterThanOrEqualTo: value)
-                          //         .where('nom_de_la_commune',
-                          //             isLessThan: value + 'z')
-                          //         .orderBy('nom_de_la_commune')
-                          //         .limit(5)
-                          //         .get()
-                          //         .then((querySnapshot) {
-                          //       List<DocumentSnapshot> documents =
-                          //           querySnapshot.docs;
-                          //       setState(() {
-                          //         _optionsCity.clear();
-                          //         documents.forEach((document) {
-                          //           _optionsCity.add(
-                          //               "${document['nom_de_la_commune']}, ${document['code_postal']}");
-                          //         });
-                          //       });
-                          //     });
-                          //   },
-                          // ),
+                          AutoCompleteTextField(
+                            key: _autoCompleteKey,
+                            clearOnSubmit: false,
+                            suggestions: _optionsCity,
+                            decoration: InputDecoration(
+                              hintText: 'Ville',
+                              // border: OutlineInputBorder(),
+                            ),
+                            itemBuilder: (BuildContext context, String option) {
+                              return ListTile(
+                                title: Text(option),
+                              );
+                            },
+                            itemFilter: (String option, String input) => option
+                                .toLowerCase()
+                                .startsWith(input.toLowerCase()),
+                            itemSorter: (String a, String b) => a.compareTo(b),
+                            itemSubmitted: (String value) {
+                              setState(() {
+                                _selectedCityId = _optionsCity
+                                    .indexWhere((element) => element == value);
+                              });
+                            },
+                            textChanged: (String value) {
+                              // Rafraîchir la liste des options à chaque fois que le texte est modifié
+                              _cityCollectionRef
+                                  .where("nom_de_la_commune",
+                                      isGreaterThanOrEqualTo: value)
+                                  .where('nom_de_la_commune',
+                                      isLessThan: value + 'z')
+                                  .orderBy('nom_de_la_commune')
+                                  .limit(5)
+                                  .get()
+                                  .then((querySnapshot) {
+                                List<DocumentSnapshot> documents =
+                                    querySnapshot.docs;
+                                setState(() {
+                                  _optionsCity.clear();
+                                  documents.forEach((document) {
+                                    _optionsCity.add(
+                                        "${document['nom_de_la_commune']}, ${document['code_postal']}");
+                                  });
+                                });
+                              });
+                            },
+                          ),
                           const SizedBox(height: 10),
                           DropDownTextField(
                             // initialValue: "name4",

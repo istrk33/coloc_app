@@ -9,6 +9,7 @@ import 'package:flutter/cupertino.dart';
 import '../tenant/homeTenant.dart';
 import 'chat.dart';
 import '../../maps/map.dart';
+import '../../uis/owner/newpage.dart';
 import 'profile.dart';
 
 class Navbar extends StatefulWidget {
@@ -68,7 +69,7 @@ class _NavbarState extends State<Navbar> {
   ];
   static List<Widget> _widgetOptionsForProp = <Widget>[
     HomeOwner(),
-    HomeTenant(),
+    FirebaseListWidget(),
     Chat(),
     ProfilePage()
   ];
