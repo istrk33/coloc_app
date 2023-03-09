@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:coloc_app/pages/uis/common/profile.dart';
@@ -10,6 +9,7 @@ import 'propertyImagePicker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:http/http.dart' as http;
+import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 
 class HomeOwner extends StatefulWidget {
   const HomeOwner({Key? key}) : super(key: key);
@@ -24,8 +24,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
   String _imageUrls = "";
   late SingleValueDropDownController _cntCity;
   late SingleValueDropDownController _cntPropertyType;
-  final TextEditingController _typeAheadController = TextEditingController();
-  late Future<List<Map<String, String>>> _optionsCity;
   late List<DropDownValueModel> _optionsPropertyType;
   String? _selectedCityUid;
   String? _selectedPropertyTypeUid;
@@ -36,7 +34,13 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
   final _addressController = TextEditingController();
   final _roomNumberController = TextEditingController();
   final _surfaceController = TextEditingController();
-  late String _searchCity;
+  GlobalKey<AutoCompleteTextFieldState<String>> _autoCompleteKey = GlobalKey();
+  List<String> _optionsCity = [];
+  var _selectedCityId;
+  late CollectionReference _cityCollectionRef;
+  final TextEditingController _typeAheadController = TextEditingController();
+
+  List<String> _suggestions = [];
 
   @override
   void dispose() {
@@ -52,97 +56,23 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
 
   @override
   void initState() {
-    _searchCity = "";
     _loadPropertyTypeOptions();
-    // _loadCityOptions(_searchCity);
     _cntCity = SingleValueDropDownController();
     _cntPropertyType = SingleValueDropDownController();
+    _cityCollectionRef = FirebaseFirestore.instance.collection('city');
+    _loadData();
     super.initState();
   }
 
-  Future<void> _loadCityOptions(cityName) async {
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection('city')
-        .where("nom_de_la_commune", isGreaterThanOrEqualTo: _searchCity)
-        .limit(7)
-        .get();
-    // await FirebaseFirestore.instance.collection('city').where("city_name", isGreaterThanOrEqualTo: searchCity).limit(15).get();
-
-    // List<DropDownValueModel> options = querySnapshot.docs.map((doc) {
-    //   final data = doc.data() as Map<String, dynamic>;
-    //   final cityName = data['nom_de_la_commune'] as String;
-    //   // final cityName = data['city_name'] as String;
-    //   final postCode = data['code_postal'] as String;
-    //   // final postCode = data['post_code'] as String;
-    //   final id = doc.id;
-    //   return DropDownValueModel(
-    //     name: "${cityName}, ${postCode}",
-    //     value: id,
-    //     toolTipMsg: "",
-    //   );
-    // }).toList();
-    // setState(() {
-    //   _optionsCity = options;
-    // });
-  }
-
-  Future<String> getJsonData(String url) async {
-    final response = await http.get(Uri.parse(url));
-
-    if (response.statusCode == 200) {
-      print(response.body);
-    } else {
-      print('Request failed with status: ${response.statusCode}');
-    }
-    return response.body;
-  }
-
-  Future<void> _loadPropertyTypeOptions() async {
-    final querySnapshot =
-        await FirebaseFirestore.instance.collection('property_type').get();
-
-    List<DropDownValueModel> options = querySnapshot.docs.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      final propertyTypeLabel = data['property_type_label'] as String;
-      final id = doc.id;
-      return DropDownValueModel(
-        name: propertyTypeLabel,
-        value: id,
-        toolTipMsg: "",
-      );
-    }).toList();
-    setState(() {
-      _optionsPropertyType = options;
+  Future<void> _loadData() async {
+    // Récupération des données de Firestore
+    QuerySnapshot querySnapshot = await _cityCollectionRef.limit(5).get();
+    List<DocumentSnapshot> documents = querySnapshot.docs;
+    documents.forEach((document) {
+      _optionsCity
+          .add("${document['nom_de_la_commune']}, ${document['code_postal']}");
     });
-  }
-
-  Future<void> _handleImagesSelected(List<File> images) async {
-    _images = images;
-  }
-
-  Future<File?> compressImage(File file) async {
-    File compressedFile = await FlutterNativeImage.compressImage(
-      file.path,
-      quality: 50,
-      percentage: 50,
-    );
-    return compressedFile;
-  }
-
-  Future<void> _uploadImage(File image) async {
-    final storageRef = FirebaseStorage.instance.ref();
-    final imageRef =
-        storageRef.child('images/${DateTime.now().millisecondsSinceEpoch}.jpg');
-    final uploadTask = imageRef.putFile(image);
-    final snapshot = await uploadTask;
-    final downloadUrl = await snapshot.ref.getDownloadURL();
-    setState(() {
-      if (_imageUrls.isNotEmpty) {
-        _imageUrls += '|$downloadUrl';
-      } else {
-        _imageUrls = downloadUrl;
-      }
-    });
+    setState(() {});
   }
 
   @override
@@ -339,7 +269,86 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                           //     }
                           //   },
                           // ),
-                          // const SizedBox(height: 10),
+
+                          // TypeAheadFormField(
+                          //   textFieldConfiguration: TextFieldConfiguration(
+                          //     controller: _typeAheadController,
+                          //     decoration: const InputDecoration(
+                          //       labelText: 'Ville',
+                          //       border: OutlineInputBorder(),
+                          //     ),
+                          //   ),
+                          //   suggestionsCallback: (pattern) async {
+                          //     final query = FirebaseFirestore.instance
+                          //         .collection('city')
+                          //         .where('nom_de_la_commune',
+                          //             isGreaterThanOrEqualTo: pattern)
+                          //         .where('nom_de_la_commune',
+                          //             isLessThanOrEqualTo: pattern + '\uf8ff')
+                          //         .limit(5);
+                          //     final snapshot = await query.get();
+                          //     final suggestions = snapshot.docs
+                          //         .map((doc) => "${doc['nom_de_la_commune']}, ${doc['code_postal']}")
+                          //         .toList();
+                          //     return suggestions;
+                          //   },
+                          //   itemBuilder: (context, suggestion) {
+                          //     return ListTile(
+                          //       title: Text(suggestion),
+                          //     );
+                          //   },
+                          //   onSuggestionSelected: (suggestion) {
+                          //     _typeAheadController.text = suggestion;
+                          //   },
+                          // ),
+                          
+                          // AutoCompleteTextField(
+                          //   key: _autoCompleteKey,
+                          //   clearOnSubmit: false,
+                          //   suggestions: _optionsCity,
+                          //   decoration: InputDecoration(
+                          //     hintText: 'Ville',
+                          //     // border: OutlineInputBorder(),
+                          //   ),
+                          //   itemBuilder: (BuildContext context, String option) {
+                          //     return ListTile(
+                          //       title: Text(option),
+                          //     );
+                          //   },
+                          //   itemFilter: (String option, String input) => option
+                          //       .toLowerCase()
+                          //       .startsWith(input.toLowerCase()),
+                          //   itemSorter: (String a, String b) => a.compareTo(b),
+                          //   itemSubmitted: (String value) {
+                          //     setState(() {
+                          //       _selectedCityId = _optionsCity
+                          //           .indexWhere((element) => element == value);
+                          //     });
+                          //   },
+                          //   textChanged: (String value) {
+                          //     // Rafraîchir la liste des options à chaque fois que le texte est modifié
+                          //     _cityCollectionRef
+                          //         .where("nom_de_la_commune",
+                          //             isGreaterThanOrEqualTo: value)
+                          //         .where('nom_de_la_commune',
+                          //             isLessThan: value + 'z')
+                          //         .orderBy('nom_de_la_commune')
+                          //         .limit(5)
+                          //         .get()
+                          //         .then((querySnapshot) {
+                          //       List<DocumentSnapshot> documents =
+                          //           querySnapshot.docs;
+                          //       setState(() {
+                          //         _optionsCity.clear();
+                          //         documents.forEach((document) {
+                          //           _optionsCity.add(
+                          //               "${document['nom_de_la_commune']}, ${document['code_postal']}");
+                          //         });
+                          //       });
+                          //     });
+                          //   },
+                          // ),
+                          const SizedBox(height: 10),
                           DropDownTextField(
                             // initialValue: "name4",
                             controller: _cntPropertyType,
@@ -413,37 +422,24 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                           const SizedBox(height: 20),
                           ElevatedButton(
                             onPressed: () async {
-                              // Rue%20de%20Guyenne%2C%2033600%20Pessac%2C%20France
                               if (_formKey.currentState!.validate()) {
-                                String url =
-                                    "https://api.opencagedata.com/geocode/v1/json?q=" +
-                                        Uri.encodeFull(
-                                            _addressController.text) +
-                                        "&key=03c48dae07364cabb7f121d8c1519492&no_annotations=1&language=fr";
-                                var json=jsonDecode(getJsonData(url) as String);
-                                print(json.result);
-                                // _images.forEach((element) async {
-                                //   // final result = await _compressImage(element!);
-                                //   await _uploadImage(element!);
-                                // });
-                                final downloadUrls = await Future.wait(
-                                    _images.map((image) async {
+                                // Rue%20de%20Guyenne%2C%2033600%20Pessac%2C%20France
+                                // https://api.opencagedata.com/geocode/v1/json?q=15%20rue%20de%20naudet%2C%2033170%20Gradignan%2C%20France&key=03c48dae07364cabb7f121d8c1519492&no_annotations=1&language=fr
+                                // String url =
+                                //     "https://api.opencagedata.com/geocode/v1/json?q=" +
+                                //         Uri.encodeFull(
+                                //             _addressController.text) +
+                                //         "&key=03c48dae07364cabb7f121d8c1519492&no_annotations=1&language=fr";
+                                // var json=jsonDecode(getJsonData(url) as String);
+                                // print(json.result);
+
+                                await Future.wait(_images.map((image) async {
                                   final compressedImage =
                                       await compressImage(image!);
                                   final imageUrl =
                                       await _uploadImage(compressedImage!);
                                   return imageUrl;
                                 }));
-
-                                final imagesUrl = downloadUrls.join('|');
-                                // for (int i = 0; i < _images.length; i++) {
-                                //   File? result =
-                                //       await _compressImage(_images[i]);
-                                //   if (result != null) {
-                                //     await _uploadImage(result);
-                                //   }
-                                // }
-                                // https://api.opencagedata.com/geocode/v1/json?q=15%20rue%20de%20naudet%2C%2033170%20Gradignan%2C%20France&key=03c48dae07364cabb7f121d8c1519492&no_annotations=1&language=fr
                                 // Submit form
                                 final CollectionReference<Map<String, dynamic>>
                                     city = FirebaseFirestore.instance
@@ -466,17 +462,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
 
                                 final collectionRef = FirebaseFirestore.instance
                                     .collection('property');
-                                // await collectionRef.add({
-                                //   'address': _addressController.text,
-                                //   'description': _descriptionController.text,
-                                //   'property_name': _propertyNameController.text,
-                                //   'room_number': _roomNumberController.text,
-                                //   'surface_area': _surfaceController.text,
-                                //   'city_id': cityRef,
-                                //   'id_owner': userRef,
-                                //   'property_type_id': propertyTypeRef,
-                                //   'imagesUrl': _imageUrls
-                                // });
                                 await collectionRef.add({
                                   'address': _addressController.text,
                                   'description': _descriptionController.text,
@@ -486,7 +471,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                   'city_id': cityRef,
                                   'id_owner': userRef,
                                   'property_type_id': propertyTypeRef,
-                                  'imagesUrl': imagesUrl
+                                  'imagesUrl': _imageUrls
                                 });
                               }
                               Navigator.pop(context);
@@ -507,5 +492,64 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Future<String> getJsonData(String url) async {
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      print(response.body);
+    } else {
+      print('Request failed with status: ${response.statusCode}');
+    }
+    return response.body;
+  }
+
+  Future<void> _loadPropertyTypeOptions() async {
+    final querySnapshot =
+        await FirebaseFirestore.instance.collection('property_type').get();
+
+    List<DropDownValueModel> options = querySnapshot.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final propertyTypeLabel = data['property_type_label'] as String;
+      final id = doc.id;
+      return DropDownValueModel(
+        name: propertyTypeLabel,
+        value: id,
+        toolTipMsg: "",
+      );
+    }).toList();
+    setState(() {
+      _optionsPropertyType = options;
+    });
+  }
+
+  Future<void> _handleImagesSelected(List<File> images) async {
+    _images = images;
+  }
+
+  Future<File?> compressImage(File file) async {
+    File compressedFile = await FlutterNativeImage.compressImage(
+      file.path,
+      quality: 50,
+      percentage: 50,
+    );
+    return compressedFile;
+  }
+
+  Future<void> _uploadImage(File image) async {
+    final storageRef = FirebaseStorage.instance.ref();
+    final imageRef =
+        storageRef.child('images/${DateTime.now().millisecondsSinceEpoch}.jpg');
+    final uploadTask = imageRef.putFile(image);
+    final snapshot = await uploadTask;
+    final downloadUrl = await snapshot.ref.getDownloadURL();
+    setState(() {
+      if (_imageUrls.isNotEmpty) {
+        _imageUrls += '|$downloadUrl';
+      } else {
+        _imageUrls = downloadUrl;
+      }
+    });
   }
 }
