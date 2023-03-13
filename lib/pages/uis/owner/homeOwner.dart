@@ -8,7 +8,7 @@ import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'propertyImagePicker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
-import 'package:autocomplete_textfield/autocomplete_textfield.dart';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class HomeOwner extends StatefulWidget {
@@ -22,11 +22,12 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   List<File?> _images = [];
   String _imageUrls = "";
-  late SingleValueDropDownController _cntCity;
   late SingleValueDropDownController _cntPropertyType;
+  late SingleValueDropDownController _cntCity;
   late List<DropDownValueModel> _optionsPropertyType;
-  String? _selectedCityUid;
+  late List<DropDownValueModel> _cityOptions;
   String? _selectedPropertyTypeUid;
+  String? _selectedCity;
   FocusNode searchFocusNode = FocusNode();
   FocusNode textFieldFocusNode = FocusNode();
   final _propertyNameController = TextEditingController();
@@ -34,18 +35,22 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
   final _addressController = TextEditingController();
   final _roomNumberController = TextEditingController();
   final _surfaceController = TextEditingController();
-  GlobalKey<AutoCompleteTextFieldState<String>> _autoCompleteKey = GlobalKey();
-  List<String> _optionsCity = [];
-  var _selectedCityId;
-  late CollectionReference _cityCollectionRef;
-  final TextEditingController _typeAheadController = TextEditingController();
+  final _cityTextEditingController = TextEditingController();
+  late GeoPoint _newHouseLocation;
+  bool _isLoading = false;
 
-  List<String> _suggestions = [];
+  void _handleSubmitted(String value) {
+    if (value != "") {
+      fetchData(value, "searchCity");
+    } else {}
+    // _cityTextEditingController.clear();
+    // print('You entered: $value');
+  }
 
   @override
   void dispose() {
-    _cntCity.dispose();
     _cntPropertyType.dispose();
+    _cntCity.dispose();
     _propertyNameController.dispose();
     _descriptionController.dispose();
     _addressController.dispose();
@@ -56,23 +61,12 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
 
   @override
   void initState() {
+    _cityOptions = [];
     _loadPropertyTypeOptions();
-    _cntCity = SingleValueDropDownController();
     _cntPropertyType = SingleValueDropDownController();
-    _cityCollectionRef = FirebaseFirestore.instance.collection('city');
-    _loadData();
+    _cntCity = SingleValueDropDownController();
+    _newHouseLocation = GeoPoint(0, 0);
     super.initState();
-  }
-
-  Future<void> _loadData() async {
-    // Récupération des données de Firestore
-    QuerySnapshot querySnapshot = await _cityCollectionRef.limit(5).get();
-    List<DocumentSnapshot> documents = querySnapshot.docs;
-    documents.forEach((document) {
-      _optionsCity
-          .add("${document['nom_de_la_commune']}, ${document['code_postal']}");
-    });
-    setState(() {});
   }
 
   @override
@@ -80,7 +74,8 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.all(20),
-        child: ListView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Padding(
               padding: EdgeInsets.all(15.0),
@@ -88,123 +83,92 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                 placeholder: 'Rechercher',
               ),
             ),
-            StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('property')
-                  .where('id_owner',
-                      isEqualTo: FirebaseFirestore.instance
-                          .collection('Users')
-                          .doc(auth.currentUser!.uid))
-                  .snapshots(),
-              builder: (BuildContext context,
-                  AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (snapshot.hasData) {
-                  final snap = snapshot.data!.docs;
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('property')
+                    .where('id_owner',
+                        isEqualTo: FirebaseFirestore.instance
+                            .collection('Users')
+                            .doc(auth.currentUser!.uid))
+                    .snapshots(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Une erreur est survenue.'));
+                  }
+
+                  if (!snapshot.hasData) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+
                   return ListView.builder(
                     shrinkWrap: true,
-                    primary: false,
-                    itemCount: snap.length,
-                    itemBuilder: (context, index) {
-                      String imgUrl = snap[index]['imagesUrl'].toString().split('|')[0];
-                    return InkWell(
-                      child: Container(
-                        height: 250,
-                        width: double.infinity,
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color:  Color(0x80ffffff),
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        child: Stack(
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                              alignment: Alignment.topCenter,
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(8),
-                                    topRight: Radius.circular(8)),
-                                child: Container(
-                                  height: 125,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                      image: NetworkImage(imgUrl),
-                                      fit: BoxFit.cover,
-                                    ),
+                    itemCount: snapshot.data!.docs.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      DocumentSnapshot doc = snapshot.data!.docs[index];
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          ListTile(
+                            contentPadding: EdgeInsets.all(0),
+                            leading: Image.network(
+                              (doc['imagesUrl'] as String).split('|')[0],
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                            ),
+                            title: Text(doc['property_name']),
+                            subtitle: Container(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    doc['description'],
                                   ),
-                                ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.publish),
+                                        color: Colors.green,
+                                        onPressed: () {
+                                          // Fonction pour publier l'élément
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.edit,
+                                          color: MyTheme.blue3,
+                                        ),
+                                        onPressed: () {
+                                          // Fonction pour éditer l'élément
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                        ),
+                                        onPressed: () {
+                                          // Fonction pour supprimer l'élément
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
-                            Container(
-                              margin: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                              alignment: Alignment.center,
-                              child: Text(
-                                snap[index]['property_name'],
-                                style: const TextStyle(
-                                  color: Colors.black54,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              margin: const EdgeInsets.fromLTRB(0, 100, 0, 0),
-                              alignment: Alignment.center,
-                              child: Text(
-                                '${snap[index]['description']}',
-                                style: const TextStyle(
-                                  color: Colors.black54,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              margin: const EdgeInsets.only(bottom: 5),
-                              alignment: Alignment.bottomCenter,
-                              child: Text(
-                                snap[index]['room_number'].toString(),
-                                style: TextStyle(
-                                  color: Colors.green.withOpacity(0.7),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Container(
-                            //   margin: const EdgeInsets.fromLTRB(0, 0, 10, 5),
-                            //   alignment: Alignment.bottomRight,
-                            //   child: Text(
-                            //     timeago
-                            //         .format(
-                            //             snap[index]['date_publication']
-                            //                 .toDate(),
-                            //             locale: locale)
-                            //         .toString(),
-                            //     style: const TextStyle(
-                            //       color: Color.fromARGB(255, 24, 1, 1),
-                            //       fontSize: 12,
-                            //     ),
-                            //   ),
-                            // ),
-                          ],
-                        ),
-                      ),
-                      onTap: () {
-                        // Navigator.of(context).push(
-                        //   MaterialPageRoute(
-                        //       builder: (context) => (AnnouncePage(
-                        //           announceId: snap[index].id,
-                        //           announceTitle:
-                        //               snap[index]['title'].toString()))),
-                        // );
-                      },
-                    );
+                            onTap: () {},
+                          ),
+                        ],
+                      );
                     },
                   );
-                } else {
-                  return const SizedBox();
-                }
-              },
-            )
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -232,7 +196,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 10),
                           TextFormField(
                             controller: _propertyNameController,
                             decoration: const InputDecoration(
@@ -260,7 +223,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 10),
+
                           TextFormField(
                             controller: _addressController,
                             decoration: const InputDecoration(
@@ -273,128 +236,76 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 10),
-                          // DropDownTextField(
-                          //   textFieldDecoration: InputDecoration(
-                          //     hintText: "Ville",
-                          //   ),
-                          //   searchDecoration: InputDecoration(
-                          //     contentPadding: EdgeInsets.symmetric(
-                          //       horizontal: 16.0,
-                          //       vertical: 12.0,
+                          // https://geo.api.gouv.fr/communes?nom=STRING&fields=departement&limit=5
+                          // Row(
+                          //   children: [
+                          //     TextFormField(
+                          //       controller: _propertyNameController,
+                          //       decoration: const InputDecoration(
+                          //         labelText: 'Recherchez une ville',
+                          //       ),
                           //     ),
-                          //     hintText: "Ville",
-                          //   ),
-                          //   clearOption: false,
-                          //   textFieldFocusNode: textFieldFocusNode,
-                          //   searchFocusNode: searchFocusNode,
-                          //   // searchAutofocus: true,
-                          //   dropDownItemCount: 3,
-                          //   searchShowCursor: false,
-                          //   enableSearch: true,
-                          //   searchKeyboardType: TextInputType.text,
-                          //   dropDownList: _optionsCity,
-                          //   onChanged: (val) {
-                          //     setState(() {
-                          //       print("iussssss");
-                          //       _selectedCityUid = val.value;
-                          //     });
-                          //   },
-
-                          //   validator: (value) {
-                          //     if (value == null || value.isEmpty) {
-                          //       return "Choisissez une ville";
-                          //     } else {
-                          //       return null;
-                          //     }
-                          //   },
+                          //     ElevatedButton(
+                          //       onPressed: () {},
+                          //       child: Icon(Icons.search),
+                          //     )
+                          //   ],
                           // ),
-
-                          // TypeAheadFormField(
-                          //   textFieldConfiguration: TextFieldConfiguration(
-                          //     controller: _typeAheadController,
-                          //     decoration: const InputDecoration(
-                          //       labelText: 'Ville',
-                          //       border: OutlineInputBorder(),
-                          //     ),
-                          //   ),
-                          //   suggestionsCallback: (pattern) async {
-                          //     final query = FirebaseFirestore.instance
-                          //         .collection('city')
-                          //         .where('nom_de_la_commune',
-                          //             isGreaterThanOrEqualTo: pattern)
-                          //         .where('nom_de_la_commune',
-                          //             isLessThanOrEqualTo: pattern + '\uf8ff')
-                          //         .limit(5);
-                          //     final snapshot = await query.get();
-                          //     final suggestions = snapshot.docs
-                          //         .map((doc) => "${doc['nom_de_la_commune']}, ${doc['code_postal']}")
-                          //         .toList();
-                          //     return suggestions;
-                          //   },
-                          //   itemBuilder: (context, suggestion) {
-                          //     return ListTile(
-                          //       title: Text(suggestion),
-                          //     );
-                          //   },
-                          //   onSuggestionSelected: (suggestion) {
-                          //     _typeAheadController.text = suggestion;
-                          //   },
-                          // ),
-                          
-                          AutoCompleteTextField(
-                            key: _autoCompleteKey,
-                            clearOnSubmit: false,
-                            suggestions: _optionsCity,
-                            decoration: InputDecoration(
-                              hintText: 'Ville',
-                              // border: OutlineInputBorder(),
-                            ),
-                            itemBuilder: (BuildContext context, String option) {
-                              return ListTile(
-                                title: Text(option),
-                              );
-                            },
-                            itemFilter: (String option, String input) => option
-                                .toLowerCase()
-                                .startsWith(input.toLowerCase()),
-                            itemSorter: (String a, String b) => a.compareTo(b),
-                            itemSubmitted: (String value) {
-                              setState(() {
-                                _selectedCityId = _optionsCity
-                                    .indexWhere((element) => element == value);
-                              });
-                            },
-                            textChanged: (String value) {
-                              // Rafraîchir la liste des options à chaque fois que le texte est modifié
-                              _cityCollectionRef
-                                  .where("nom_de_la_commune",
-                                      isGreaterThanOrEqualTo: value)
-                                  .where('nom_de_la_commune',
-                                      isLessThan: value + 'z')
-                                  .orderBy('nom_de_la_commune')
-                                  .limit(5)
-                                  .get()
-                                  .then((querySnapshot) {
-                                List<DocumentSnapshot> documents =
-                                    querySnapshot.docs;
-                                setState(() {
-                                  _optionsCity.clear();
-                                  documents.forEach((document) {
-                                    _optionsCity.add(
-                                        "${document['nom_de_la_commune']}, ${document['code_postal']}");
-                                  });
-                                });
-                              });
-                            },
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _cityTextEditingController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Recherchez une ville',
+                                  ),
+                                  onSubmitted: _handleSubmitted,
+                                ),
+                              ),
+                              SizedBox(width: 16.0),
+                              ElevatedButton(
+                                onPressed: () {
+                                  _handleSubmitted(
+                                      "https://geo.api.gouv.fr/communes?nom=${_cityTextEditingController.text}&fields=departement&limit=5");
+                                },
+                                child: Icon(Icons.search),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 10),
                           DropDownTextField(
                             // initialValue: "name4",
-                            controller: _cntPropertyType,
+                            controller: _cntCity,
                             clearOption: false,
                             // enableSearch: true,
                             // dropdownColor: Colors.green,
+                            searchDecoration: InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                                vertical: 12.0,
+                              ),
+                              hintText: "Ville",
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Choisissez une ville";
+                              } else {
+                                return null;
+                              }
+                            },
+                            dropDownItemCount: 6,
+                            dropDownList: _cityOptions,
+                            onChanged: (val) {
+                              setState(() {
+                                _selectedCity = val.value;
+                              });
+                            },
+                            textFieldDecoration: InputDecoration(
+                              hintText: "Recherchez une ville ci-dessus",
+                            ),
+                          ),
+                          DropDownTextField(
+                            controller: _cntPropertyType,
+                            clearOption: false,
                             searchDecoration: InputDecoration(
                               contentPadding: EdgeInsets.symmetric(
                                 horizontal: 16.0,
@@ -420,7 +331,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                               hintText: "Type de propriété",
                             ),
                           ),
-                          const SizedBox(height: 10),
                           Row(
                             children: [
                               Expanded(
@@ -459,10 +369,20 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                           const SizedBox(height: 10),
                           PropertyImagePicker(
                               onImagesSelected: _handleImagesSelected),
-                          const SizedBox(height: 20),
+                          // const SizedBox(height: 20),
                           ElevatedButton(
                             onPressed: () async {
+                              setState(() {
+                                _isLoading = true;
+                              });
+                              // String url="https://api-adresse.data.gouv.fr/search/?q=7+rue+de+guyenne+Pessac+Gironde+33&limit=1";
                               if (_formKey.currentState!.validate()) {
+                                String address = _addressController.text +
+                                    " " +
+                                    _selectedCity!;
+                                String url =
+                                    "https://api-adresse.data.gouv.fr/search/?q=${address.replaceAll(" ", "+").replaceAll(",", "")}&limit=1";
+                                await fetchData(url, "requestType");
                                 // Rue%20de%20Guyenne%2C%2033600%20Pessac%2C%20France
                                 // https://api.opencagedata.com/geocode/v1/json?q=15%20rue%20de%20naudet%2C%2033170%20Gradignan%2C%20France&key=03c48dae07364cabb7f121d8c1519492&no_annotations=1&language=fr
                                 // String url =
@@ -470,9 +390,8 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                 //         Uri.encodeFull(
                                 //             _addressController.text) +
                                 //         "&key=03c48dae07364cabb7f121d8c1519492&no_annotations=1&language=fr";
-                                // var json=jsonDecode(getJsonData(url) as String);
-                                // print(json.result);
 
+                                // send img
                                 await Future.wait(_images.map((image) async {
                                   final compressedImage =
                                       await compressImage(image!);
@@ -481,9 +400,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                   return imageUrl;
                                 }));
                                 // Submit form
-                                final CollectionReference<Map<String, dynamic>>
-                                    city = FirebaseFirestore.instance
-                                        .collection('city');
                                 final CollectionReference<Map<String, dynamic>>
                                     users = FirebaseFirestore.instance
                                         .collection('Users');
@@ -495,30 +411,42 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                     userRef =
                                     users.doc(auth.currentUser!.uid.toString());
                                 final DocumentReference<Map<String, dynamic>>
-                                    cityRef = city.doc(_selectedCityUid);
-                                final DocumentReference<Map<String, dynamic>>
                                     propertyTypeRef =
                                     propertyTypes.doc(_selectedPropertyTypeUid);
 
                                 final collectionRef = FirebaseFirestore.instance
                                     .collection('property');
                                 await collectionRef.add({
-                                  'address': _addressController.text,
+                                  'address': address,
                                   'description': _descriptionController.text,
                                   'property_name': _propertyNameController.text,
                                   'room_number': _roomNumberController.text,
                                   'surface_area': _surfaceController.text,
-                                  'city_id': cityRef,
                                   'id_owner': userRef,
                                   'property_type_id': propertyTypeRef,
-                                  'imagesUrl': _imageUrls
+                                  'position': _newHouseLocation,
+                                  'imagesUrl': _imageUrls,
                                 });
+                                Navigator.pop(context);
                               }
-                              Navigator.pop(context);
+                              setState(() {
+                                _isLoading = false;
+                              });
+                              _formKey.currentState?.reset();
+                              _propertyNameController.clear();
+                              _descriptionController.clear();
+                              _addressController.clear();
+                              _roomNumberController.clear();
+                              _surfaceController.clear();
+                              _cityTextEditingController.clear();
+                              _cntCity.clearDropDown();
+                              _cntPropertyType.clearDropDown();
                             },
-                            child: const Text(
-                              'Enregistrer',
-                            ),
+                            child: _isLoading
+                                ? Center(child: CircularProgressIndicator())
+                                : const Text(
+                                    'Enregistrer',
+                                  ),
                           ),
                         ],
                       ),
@@ -532,17 +460,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
         child: const Icon(Icons.add),
       ),
     );
-  }
-
-  Future<String> getJsonData(String url) async {
-    final response = await http.get(Uri.parse(url));
-
-    if (response.statusCode == 200) {
-      print(response.body);
-    } else {
-      print('Request failed with status: ${response.statusCode}');
-    }
-    return response.body;
   }
 
   Future<void> _loadPropertyTypeOptions() async {
@@ -591,5 +508,58 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
         _imageUrls = downloadUrl;
       }
     });
+  }
+
+  Future<void> fetchData(String url, String requestType) async {
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (requestType == "searchCity") {
+          final cityOptions = List<DropDownValueModel>.from(data.map((option) {
+            return DropDownValueModel(
+              name:
+                  "${option['nom']}, ${option['departement']['nom']} ${option['departement']['code']}",
+              value:
+                  "${option['nom']}, ${option['departement']['nom']} ${option['departement']['code']}",
+            );
+          }));
+          setState(() {
+            _cityOptions = cityOptions;
+          });
+        } else {
+          print("=========================================");
+          print(data);
+          setState(
+            () {
+              _newHouseLocation = GeoPoint(
+                  data['features'][0]['geometry']['coordinates'][1],
+                  data['features'][0]['geometry']['coordinates'][0]);
+            },
+          );
+        }
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Erreur'),
+            content: Text(
+                'Problème avec la récupération des données, signalez cette erreur si elle persiste !'),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 }
