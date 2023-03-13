@@ -115,9 +115,13 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                             contentPadding: EdgeInsets.all(0),
                             leading: Image.network(
                               (doc['imagesUrl'] as String).split('|')[0],
+                              errorBuilder: (BuildContext context,
+                                  Object exception, StackTrace? stackTrace) {
+                                return Image.asset(
+                                    'assets/images/placeholder.jpg'); // L'image par défaut
+                              },
                               width: 50,
                               height: 50,
-                              fit: BoxFit.cover,
                             ),
                             title: Text(doc['property_name']),
                             subtitle: Container(
@@ -133,9 +137,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                       IconButton(
                                         icon: Icon(Icons.publish),
                                         color: Colors.green,
-                                        onPressed: () {
-                                          // Fonction pour publier l'élément
-                                        },
+                                        onPressed: () {},
                                       ),
                                       IconButton(
                                         icon: Icon(
@@ -143,7 +145,412 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                           color: MyTheme.blue3,
                                         ),
                                         onPressed: () {
-                                          // Fonction pour éditer l'élément
+                                          // showModalBottomSheet(
+                                          //   isScrollControlled: true,
+                                          //   context: context,
+                                          //   builder: (BuildContext context) {
+                                          //     return SingleChildScrollView(
+                                          //       child: Padding(
+                                          //         padding: EdgeInsets.only(
+                                          //             bottom:
+                                          //                 MediaQuery.of(context)
+                                          //                     .viewInsets
+                                          //                     .bottom),
+                                          //         child: Container(
+                                          //           padding:
+                                          //               const EdgeInsets.all(
+                                          //                   20),
+                                          //           child: Form(
+                                          //             key: _formKey,
+                                          //             child: Column(
+                                          //               mainAxisSize:
+                                          //                   MainAxisSize.min,
+                                          //               children: [
+                                          //                 Text(
+                                          //                   "Editer la propriété ${doc.id}",
+                                          //                   style: TextStyle(
+                                          //                     fontSize: 20,
+                                          //                     fontWeight:
+                                          //                         FontWeight
+                                          //                             .bold,
+                                          //                   ),
+                                          //                 ),
+                                          //                 TextFormField(
+                                          //                   initialValue: doc[
+                                          //                       "property_name"],
+                                          //                   controller:
+                                          //                       _propertyNameController,
+                                          //                   decoration:
+                                          //                       const InputDecoration(
+                                          //                     labelText:
+                                          //                         'Nom de la propriété',
+                                          //                   ),
+                                          //                   validator: (value) {
+                                          //                     if (value!
+                                          //                         .isEmpty) {
+                                          //                       return 'Le nom ne peux pas être vide';
+                                          //                     }
+                                          //                     return null;
+                                          //                   },
+                                          //                 ),
+                                          //                 TextFormField(
+                                          //                   initialValue: doc[
+                                          //                       "description"],
+                                          //                   controller:
+                                          //                       _descriptionController,
+                                          //                   minLines: 2,
+                                          //                   maxLines: 3,
+                                          //                   decoration:
+                                          //                       const InputDecoration(
+                                          //                     labelText:
+                                          //                         'Description',
+                                          //                   ),
+                                          //                   validator: (value) {
+                                          //                     if (value!
+                                          //                         .isEmpty) {
+                                          //                       return 'La description ne peux pas être vide';
+                                          //                     }
+                                          //                     return null;
+                                          //                   },
+                                          //                 ),
+                                          //                 TextFormField(
+                                          //                   initialValue:
+                                          //                       doc["address"],
+                                          //                   controller:
+                                          //                       _addressController,
+                                          //                   decoration:
+                                          //                       const InputDecoration(
+                                          //                     labelText:
+                                          //                         'Adresse',
+                                          //                   ),
+                                          //                   validator: (value) {
+                                          //                     if (value!
+                                          //                         .isEmpty) {
+                                          //                       return 'L\'adresse ne peux pas être vide';
+                                          //                     }
+                                          //                     return null;
+                                          //                   },
+                                          //                 ),
+                                          //                 Row(
+                                          //                   children: [
+                                          //                     Expanded(
+                                          //                       child:
+                                          //                           TextField(
+                                          //                         controller:
+                                          //                             _cityTextEditingController,
+                                          //                         decoration:
+                                          //                             InputDecoration(
+                                          //                           hintText:
+                                          //                               'Recherchez une ville',
+                                          //                         ),
+                                          //                         onSubmitted:
+                                          //                             _handleSubmitted,
+                                          //                       ),
+                                          //                     ),
+                                          //                     SizedBox(
+                                          //                         width: 16.0),
+                                          //                     ElevatedButton(
+                                          //                       onPressed: () {
+                                          //                         _handleSubmitted(
+                                          //                             "https://geo.api.gouv.fr/communes?nom=${_cityTextEditingController.text}&fields=departement&limit=5");
+                                          //                       },
+                                          //                       child: Icon(Icons
+                                          //                           .search),
+                                          //                     ),
+                                          //                   ],
+                                          //                 ),
+                                          //                 DropDownTextField(
+                                          //                   // initialValue: "name4",
+                                          //                   controller:
+                                          //                       _cntCity,
+                                          //                   clearOption: false,
+                                          //                   // enableSearch: true,
+                                          //                   // dropdownColor: Colors.green,
+                                          //                   searchDecoration:
+                                          //                       InputDecoration(
+                                          //                     contentPadding:
+                                          //                         EdgeInsets
+                                          //                             .symmetric(
+                                          //                       horizontal:
+                                          //                           16.0,
+                                          //                       vertical: 12.0,
+                                          //                     ),
+                                          //                     hintText: "Ville",
+                                          //                   ),
+                                          //                   validator: (value) {
+                                          //                     if (value ==
+                                          //                             null ||
+                                          //                         value
+                                          //                             .isEmpty) {
+                                          //                       return "Choisissez une ville";
+                                          //                     } else {
+                                          //                       return null;
+                                          //                     }
+                                          //                   },
+                                          //                   dropDownItemCount:
+                                          //                       6,
+                                          //                   dropDownList:
+                                          //                       _cityOptions,
+                                          //                   onChanged: (val) {
+                                          //                     setState(() {
+                                          //                       _selectedCity =
+                                          //                           val.value;
+                                          //                     });
+                                          //                   },
+                                          //                   textFieldDecoration:
+                                          //                       InputDecoration(
+                                          //                     hintText:
+                                          //                         "Recherchez une ville ci-dessus",
+                                          //                   ),
+                                          //                 ),
+                                          //                 DropDownTextField(
+                                          //                   controller:
+                                          //                       _cntPropertyType,
+                                          //                   clearOption: false,
+                                          //                   searchDecoration:
+                                          //                       InputDecoration(
+                                          //                     contentPadding:
+                                          //                         EdgeInsets
+                                          //                             .symmetric(
+                                          //                       horizontal:
+                                          //                           16.0,
+                                          //                       vertical: 12.0,
+                                          //                     ),
+                                          //                     hintText:
+                                          //                         "Type de propriété",
+                                          //                   ),
+                                          //                   validator: (value) {
+                                          //                     if (value ==
+                                          //                             null ||
+                                          //                         value
+                                          //                             .isEmpty) {
+                                          //                       return "Choisissez le type de votre propriété";
+                                          //                     } else {
+                                          //                       return null;
+                                          //                     }
+                                          //                   },
+                                          //                   dropDownItemCount:
+                                          //                       6,
+                                          //                   dropDownList:
+                                          //                       _optionsPropertyType,
+                                          //                   onChanged: (val) {
+                                          //                     setState(() {
+                                          //                       _selectedPropertyTypeUid =
+                                          //                           val.value;
+                                          //                     });
+                                          //                   },
+                                          //                   textFieldDecoration:
+                                          //                       InputDecoration(
+                                          //                     hintText:
+                                          //                         "Type de propriété",
+                                          //                   ),
+                                          //                 ),
+                                          //                 Row(
+                                          //                   children: [
+                                          //                     Expanded(
+                                          //                       child:
+                                          //                           TextFormField(
+                                          //                         controller:
+                                          //                             _roomNumberController,
+                                          //                         keyboardType:
+                                          //                             TextInputType
+                                          //                                 .number,
+                                          //                         decoration:
+                                          //                             const InputDecoration(
+                                          //                           labelText:
+                                          //                               'Nombre de chambre',
+                                          //                         ),
+                                          //                         validator:
+                                          //                             (value) {
+                                          //                           if (value!
+                                          //                               .isEmpty) {
+                                          //                             return 'Nombre de chambre incorrect';
+                                          //                           }
+                                          //                           return null;
+                                          //                         },
+                                          //                       ),
+                                          //                     ),
+                                          //                     SizedBox(
+                                          //                         width: 16),
+                                          //                     Expanded(
+                                          //                       child:
+                                          //                           TextFormField(
+                                          //                         controller:
+                                          //                             _surfaceController,
+                                          //                         keyboardType:
+                                          //                             TextInputType
+                                          //                                 .number,
+                                          //                         decoration:
+                                          //                             const InputDecoration(
+                                          //                           labelText:
+                                          //                               'Surface en m²',
+                                          //                         ),
+                                          //                         validator:
+                                          //                             (value) {
+                                          //                           if (value!
+                                          //                               .isEmpty) {
+                                          //                             return 'Valeur incorrecte';
+                                          //                           }
+                                          //                           return null;
+                                          //                         },
+                                          //                       ),
+                                          //                     ),
+                                          //                   ],
+                                          //                 ),
+                                          //                 const SizedBox(
+                                          //                     height: 10),
+                                          //                 PropertyImagePicker(
+                                          //                     onImagesSelected:
+                                          //                         _handleImagesSelected),
+                                          //                 // const SizedBox(height: 20),
+                                          //                 ElevatedButton(
+                                          //                   onPressed:
+                                          //                       () async {
+                                          //                     setState(() {
+                                          //                       _isLoading =
+                                          //                           true;
+                                          //                     });
+                                          //                     // String url="https://api-adresse.data.gouv.fr/search/?q=7+rue+de+guyenne+Pessac+Gironde+33&limit=1";
+                                          //                     if (_formKey
+                                          //                         .currentState!
+                                          //                         .validate()) {
+                                          //                       String address =
+                                          //                           _addressController
+                                          //                                   .text +
+                                          //                               " " +
+                                          //                               _selectedCity!;
+                                          //                       String url =
+                                          //                           "https://api-adresse.data.gouv.fr/search/?q=${address.replaceAll(" ", "+").replaceAll(",", "")}&limit=1";
+                                          //                       await fetchData(
+                                          //                           url,
+                                          //                           "requestType");
+                                          //                       // Rue%20de%20Guyenne%2C%2033600%20Pessac%2C%20France
+                                          //                       // https://api.opencagedata.com/geocode/v1/json?q=15%20rue%20de%20naudet%2C%2033170%20Gradignan%2C%20France&key=03c48dae07364cabb7f121d8c1519492&no_annotations=1&language=fr
+                                          //                       // String url =
+                                          //                       //     "https://api.opencagedata.com/geocode/v1/json?q=" +
+                                          //                       //         Uri.encodeFull(
+                                          //                       //             _addressController.text) +
+                                          //                       //         "&key=03c48dae07364cabb7f121d8c1519492&no_annotations=1&language=fr";
+
+                                          //                       // send img
+                                          //                       await Future.wait(
+                                          //                           _images.map(
+                                          //                               (image) async {
+                                          //                         final compressedImage =
+                                          //                             await compressImage(
+                                          //                                 image!);
+                                          //                         final imageUrl =
+                                          //                             await _uploadImage(
+                                          //                                 compressedImage!);
+                                          //                         return imageUrl;
+                                          //                       }));
+                                          //                       // Submit form
+                                          //                       final CollectionReference<
+                                          //                               Map<String,
+                                          //                                   dynamic>>
+                                          //                           users =
+                                          //                           FirebaseFirestore
+                                          //                               .instance
+                                          //                               .collection(
+                                          //                                   'Users');
+                                          //                       final CollectionReference<
+                                          //                               Map<String,
+                                          //                                   dynamic>>
+                                          //                           propertyTypes =
+                                          //                           FirebaseFirestore
+                                          //                               .instance
+                                          //                               .collection(
+                                          //                                   'property_type');
+
+                                          //                       final DocumentReference<
+                                          //                               Map<String,
+                                          //                                   dynamic>>
+                                          //                           userRef =
+                                          //                           users.doc(auth
+                                          //                               .currentUser!
+                                          //                               .uid
+                                          //                               .toString());
+                                          //                       final DocumentReference<
+                                          //                               Map<String,
+                                          //                                   dynamic>>
+                                          //                           propertyTypeRef =
+                                          //                           propertyTypes
+                                          //                               .doc(
+                                          //                                   _selectedPropertyTypeUid);
+
+                                          //                       final collectionRef =
+                                          //                           FirebaseFirestore
+                                          //                               .instance
+                                          //                               .collection(
+                                          //                                   'property');
+                                          //                       await collectionRef
+                                          //                           .add({
+                                          //                         'address':
+                                          //                             address,
+                                          //                         'description':
+                                          //                             _descriptionController
+                                          //                                 .text,
+                                          //                         'property_name':
+                                          //                             _propertyNameController
+                                          //                                 .text,
+                                          //                         'room_number':
+                                          //                             _roomNumberController
+                                          //                                 .text,
+                                          //                         'surface_area':
+                                          //                             _surfaceController
+                                          //                                 .text,
+                                          //                         'id_owner':
+                                          //                             userRef,
+                                          //                         'property_type_id':
+                                          //                             propertyTypeRef,
+                                          //                         'position':
+                                          //                             _newHouseLocation,
+                                          //                         'imagesUrl':
+                                          //                             _imageUrls,
+                                          //                       });
+                                          //                       Navigator.pop(
+                                          //                           context);
+                                          //                     }
+                                          //                     setState(() {
+                                          //                       _isLoading =
+                                          //                           false;
+                                          //                     });
+                                          //                     _formKey
+                                          //                         .currentState
+                                          //                         ?.reset();
+                                          //                     _propertyNameController
+                                          //                         .clear();
+                                          //                     _descriptionController
+                                          //                         .clear();
+                                          //                     _addressController
+                                          //                         .clear();
+                                          //                     _roomNumberController
+                                          //                         .clear();
+                                          //                     _surfaceController
+                                          //                         .clear();
+                                          //                     _cityTextEditingController
+                                          //                         .clear();
+                                          //                     _cntCity
+                                          //                         .clearDropDown();
+                                          //                     _cntPropertyType
+                                          //                         .clearDropDown();
+                                          //                   },
+                                          //                   child: _isLoading
+                                          //                       ? Center(
+                                          //                           child:
+                                          //                               CircularProgressIndicator())
+                                          //                       : const Text(
+                                          //                           'Enregistrer',
+                                          //                         ),
+                                          //                 ),
+                                          //               ],
+                                          //             ),
+                                          //           ),
+                                          //         ),
+                                          //       ),
+                                          //     );
+                                          //   },
+                                          // );
                                         },
                                       ),
                                       IconButton(
@@ -152,7 +559,75 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                           color: Colors.red,
                                         ),
                                         onPressed: () {
-                                          // Fonction pour supprimer l'élément
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                title: Text('Attention'),
+                                                content: Text(
+                                                  'Voulez vous supprimer cette propriété ?',
+                                                ),
+                                                actions: [
+                                                  ElevatedButton(
+                                                    style: ButtonStyle(
+                                                      backgroundColor:
+                                                          MaterialStateProperty
+                                                              .all<Color>(
+                                                        Colors.red,
+                                                      ),
+                                                    ),
+                                                    child: Text('Oui'),
+                                                    onPressed: () async {
+                                                      var toDeleteId = doc.id;
+                                                      final FirebaseFirestore
+                                                          firestore =
+                                                          FirebaseFirestore
+                                                              .instance;
+                                                      final DocumentReference
+                                                          propertyToDelete =
+                                                          firestore
+                                                              .collection(
+                                                                  'property')
+                                                              .doc(toDeleteId);
+                                                      await propertyToDelete
+                                                          .delete();
+                                                      Navigator.of(context)
+                                                          .pop();
+
+                                                      for (var url
+                                                          in (doc['imagesUrl']
+                                                                  as String)
+                                                              .split('|')) {
+                                                        final ref =
+                                                            FirebaseStorage
+                                                                .instance
+                                                                .refFromURL(
+                                                                    url);
+                                                        await ref.delete();
+                                                      }
+                                                    },
+                                                  ),
+                                                  ElevatedButton(
+                                                    child: Text('Non'),
+                                                    style: ButtonStyle(
+                                                      backgroundColor:
+                                                          MaterialStateProperty
+                                                              .all<Color>(
+                                                                  Colors.white),
+                                                      foregroundColor:
+                                                          MaterialStateProperty
+                                                              .all<Color>(
+                                                                  Colors.black),
+                                                    ),
+                                                    onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
                                         },
                                       ),
                                     ],
@@ -208,7 +683,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 10),
                           TextFormField(
                             controller: _descriptionController,
                             minLines: 2,
@@ -236,21 +710,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                               return null;
                             },
                           ),
-                          // https://geo.api.gouv.fr/communes?nom=STRING&fields=departement&limit=5
-                          // Row(
-                          //   children: [
-                          //     TextFormField(
-                          //       controller: _propertyNameController,
-                          //       decoration: const InputDecoration(
-                          //         labelText: 'Recherchez une ville',
-                          //       ),
-                          //     ),
-                          //     ElevatedButton(
-                          //       onPressed: () {},
-                          //       child: Icon(Icons.search),
-                          //     )
-                          //   ],
-                          // ),
                           Row(
                             children: [
                               Expanded(
@@ -528,8 +987,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
             _cityOptions = cityOptions;
           });
         } else {
-          print("=========================================");
-          print(data);
           setState(
             () {
               _newHouseLocation = GeoPoint(

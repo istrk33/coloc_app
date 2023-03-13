@@ -24,7 +24,7 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
       setState(() {
         _images[index] = File(pickedFile.path);
       });
-      _handleSelection(_images!.where((image) => image != null).toList());
+      _handleSelection(_images.where((image) => image != null).toList());
       if (_images[index] == null) {
         print('Erreur: _images[$index] est nul');
       }
