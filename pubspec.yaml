@@ -53,6 +53,9 @@ dependencies:
   timeago: ^3.3.0
   dropdown_textfield: ^1.0.8
   flutter_native_image: ^0.0.6+1
+  custom_info_window: ^1.0.1
+  latlong: ^0.6.1
+  latlong2: ^0.8.1
   # dependencies:
   #fluttertoast: ^8.1.2
 
