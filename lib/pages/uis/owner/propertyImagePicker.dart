@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 
 class PropertyImagePicker extends StatefulWidget {
   final dynamic Function(List<dynamic>) onImagesSelected;
-  final List<String>? defaultImages;
+  final List<dynamic>? defaultImages;
 
   PropertyImagePicker({required this.onImagesSelected, this.defaultImages});
 
@@ -58,7 +58,7 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
   @override
   Widget build(BuildContext context) {
     // print(widget.defaultImages);
-    // print(_images);
+    print(_images);
     return GridView.count(
       crossAxisCount: 3,
       shrinkWrap: true,
@@ -74,13 +74,16 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
               border: Border.all(width: 1, color: Colors.grey),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: widget.defaultImages != null && widget.defaultImages![index] != null && widget.defaultImages![index] == _images[index]
+            child: index<=widget.defaultImages!.length-1 &&
+                    widget.defaultImages != null &&
+                    widget.defaultImages![index] != null &&
+                    widget.defaultImages![index] == _images[index]
                 ? Image.network(
                     widget.defaultImages![index],
                     fit: BoxFit.cover,
                     key: UniqueKey(),
                   )
-                : _images[index] != null
+                : _images.length >= 3 && _images[index] != null
                     ? Image.file(
                         _images[index]!,
                         fit: BoxFit.cover,

@@ -138,16 +138,8 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                           color: MyTheme.blue3,
                                         ),
                                         onPressed: () async {
-                                          var addressSplitted = (doc["address"] as String).split(',')[0].split(' ');
-                                          var ville = addressSplitted[addressSplitted.length - 1];
+                                          var ville = (doc["city"] as String).split(',')[0];
                                           await fetchData("https://geo.api.gouv.fr/communes?nom=${ville}&fields=departement&limit=5", "searchCity");
-                                          var addressSplittedForValue = (doc["address"] as String).split(' ');
-                                          // var valForDropDownTextField = addressSplittedForValue[addressSplittedForValue.length - 3] +
-                                          //     " " +
-                                          var valForDropDownTextField =
-                                              addressSplittedForValue[addressSplittedForValue.length - 2] +
-                                              " " +
-                                              addressSplittedForValue[addressSplittedForValue.length - 1];
                                           final FirebaseFirestore _firestore = FirebaseFirestore.instance;
                                           DocumentReference propertyTypeRef = _firestore.collection('property_type').doc(doc["property_type_id"].id);
                                           DocumentSnapshot snapshot = await propertyTypeRef.get();
@@ -157,13 +149,19 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
 
                                           var newPropertyName = doc["property_name"] as String;
                                           var newPropertyDescription = doc["description"] as String;
-                                          var newAddress = addressSplittedForValue.sublist(0, addressSplittedForValue.length - 3).join(' ');
-                                          var newCity = valForDropDownTextField;
+                                          var newAddress = (doc["address"] as String);
+                                          var newCity = (doc["city"] as String);
                                           var newPropertyTypeId = doc["property_type_id"].id;
                                           var newNumberRooms = doc["room_number"];
                                           var newSurfaceArea = doc["surface_area"];
-                                          List<dynamic> newImages = (doc['imagesUrl'] as String).split('|');
+                                          List<dynamic> newImagess = (doc['imagesUrl'] as String).split('|');
 
+                                          var townSearchText = "";
+                                          // List<String?> myList = List.generate(3, (index) => newImages[index] ? 'Hello' : null);
+                                          // newImages.addAll(List.filled(3 - newImages.length, null));
+
+                                          // final newImages = newImagess ?? [];
+                                          // newImages.addAll(List.filled(3 - newImages.length, null));
                                           showModalBottomSheet(
                                             isScrollControlled: true,
                                             context: context,
@@ -234,20 +232,21 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                     hintText: 'Recherchez une ville',
                                                                   ),
                                                                   onSubmitted: _handleSubmitted,
+                                                                  onChanged: (value) => {townSearchText = value},
                                                                 ),
                                                               ),
                                                               SizedBox(width: 16.0),
                                                               ElevatedButton(
                                                                 onPressed: () {
                                                                   _handleSubmitted(
-                                                                      "https://geo.api.gouv.fr/communes?nom=${_cityTextEditingController.text}&fields=departement&limit=5");
+                                                                      "https://geo.api.gouv.fr/communes?nom=${townSearchText}&fields=departement&limit=5");
                                                                 },
                                                                 child: Icon(Icons.search),
                                                               ),
                                                             ],
                                                           ),
                                                           DropDownTextField(
-                                                            initialValue: valForDropDownTextField,
+                                                            initialValue: newCity,
                                                             // controller:
                                                             //     _cntCity,
                                                             clearOption: false,
@@ -348,10 +347,10 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                           PropertyImagePicker(
                                                             onImagesSelected: (List<dynamic> images) {
                                                               {
-                                                                newImages = images;
+                                                                newImagess = images;
                                                               }
                                                             },
-                                                            defaultImages: (doc['imagesUrl'] as String).split('|'),
+                                                            defaultImages: newImagess,
                                                           ),
                                                           _isLoading
                                                               ? Center(child: CircularProgressIndicator())
@@ -370,7 +369,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                       print("newPropertyTypeId $newPropertyTypeId");
                                                                       print("newNumberRooms $newNumberRooms");
                                                                       print("newSurfaceArea $newSurfaceArea");
-                                                                      print("newImages $newImages");
+                                                                      print("newImages $newImagess");
 
                                                                       print(
                                                                           "===================================debugEnd===================================");
@@ -382,8 +381,8 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                       // send img if new image, and compare with old
                                                                       var arrayUrl = [];
                                                                       var baseImages = (doc['imagesUrl'] as String).split('|');
-                                                                      for (int i = 0; i < newImages.length; i++) {
-                                                                        if (!(newImages[i] is String)) {
+                                                                      for (int i = 0; i < newImagess.length; i++) {
+                                                                        if (!(newImagess[i] is String)) {
                                                                           var baseUrl = baseImages[i];
                                                                           final ref = FirebaseStorage.instance.refFromURL(baseUrl);
                                                                           await ref.delete();
@@ -391,13 +390,13 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                           final storageRef = FirebaseStorage.instance.ref();
                                                                           final imageRef =
                                                                               storageRef.child('images/${DateTime.now().millisecondsSinceEpoch}.jpg');
-                                                                          final uploadTask = imageRef.putFile(newImages[i]);
+                                                                          final uploadTask = imageRef.putFile(newImagess[i]);
                                                                           final snapshot = await uploadTask;
                                                                           final downloadUrl = await snapshot.ref.getDownloadURL();
                                                                           // arrayUrl[i] = downloadUrl;
-                                                                          arrayUrl.add( downloadUrl);
+                                                                          arrayUrl.add(downloadUrl);
                                                                         } else {
-                                                                          arrayUrl.add( newImages[i]);
+                                                                          arrayUrl.add(newImagess[i]);
                                                                         }
                                                                       }
 
@@ -425,16 +424,18 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                       // });
                                                                       FirebaseFirestore.instance
                                                                           .collection('property')
-                                                                          .doc(
-                                                                              doc.id) // remplacer par l'id du document que vous souhaitez mettre à jour
-                                                                          .update({ 'address': newAddress,
-                                                                        'description': newPropertyDescription,
-                                                                        'property_name': newPropertyName,
-                                                                        'room_number': newNumberRooms,
-                                                                        'surface_area': newSurfaceArea,
-                                                                        'property_type_id': propertyTypeRef,
-                                                                        'position': _newHouseLocation,
-                                                                        'imagesUrl': arrayUrl.join('|'),
+                                                                          .doc(doc
+                                                                              .id) // remplacer par l'id du document que vous souhaitez mettre à jour
+                                                                          .update({
+                                                                            'address': newAddress,
+                                                                            'city': newAddress,
+                                                                            'description': newPropertyDescription,
+                                                                            'property_name': newPropertyName,
+                                                                            'room_number': newNumberRooms,
+                                                                            'surface_area': newSurfaceArea,
+                                                                            'property_type_id': propertyTypeRef,
+                                                                            'position': _newHouseLocation,
+                                                                            'imagesUrl': arrayUrl.join('|'),
                                                                           })
                                                                           .then((_) => print('Mise à jour réussie'))
                                                                           .catchError((error) => print('Erreur de mise à jour: $error'));
@@ -767,7 +768,8 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
 
                                       final collectionRef = FirebaseFirestore.instance.collection('property');
                                       await collectionRef.add({
-                                        'address': address,
+                                        'address': _addressController.text,
+                                        'city': _selectedCity,
                                         'description': _descriptionController.text,
                                         'property_name': _propertyNameController.text,
                                         'room_number': _roomNumberController.text,
