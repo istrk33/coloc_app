@@ -27,8 +27,8 @@ final CollectionReference propertyCollection =
   late BitmapDescriptor customIcon;
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
 
-  void _showModalBottomSheet(BuildContext context, String id) {
-    _loadAnnounceData(id);
+  void _showModalBottomSheet(BuildContext context, String id) async {
+    await _loadAnnounceData(id);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
