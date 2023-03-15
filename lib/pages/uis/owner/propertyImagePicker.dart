@@ -3,44 +3,62 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class PropertyImagePicker extends StatefulWidget {
-  // final dynamic Function(File) onImagesSelected;
-  final dynamic Function(List<File>) onImagesSelected;
+  final dynamic Function(List<dynamic>) onImagesSelected;
+  final List<dynamic>? defaultImages;
 
-  PropertyImagePicker({required this.onImagesSelected});
+  PropertyImagePicker({required this.onImagesSelected, this.defaultImages});
 
   @override
   _PropertyImagePickerState createState() => _PropertyImagePickerState();
 }
 
 class _PropertyImagePickerState extends State<PropertyImagePicker> {
-  List<File?> _images = [null, null, null];
+  List<dynamic> _images = [];
   final double _imageSize = 100;
 
+  @override
+  void initState() {
+    super.initState();
+    _images = widget.defaultImages != null
+        ? widget.defaultImages!.map((image) => image != null ? (image is String ? image : File(image)) : null).toList()
+        : List.generate(3, (index) => null);
+  }
+
   Future<void> _getImage(int index) async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-    // if (mounted) {
-    if (pickedFile != null && mounted) {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      final newImage = File(pickedFile.path);
+
       setState(() {
-        _images[index] = File(pickedFile.path);
+        _images[index] = newImage;
       });
-      _handleSelection(_images.where((image) => image != null).toList());
-      if (_images[index] == null) {
-        print('Erreur: _images[$index] est nul');
-      }
+
+      _handleSelection(_images.where((image) => image != null).map((image) => image!).toList());
     }
   }
 
-  _handleSelection(List<File?> images) {
-// _handleSelection(File image) {
-    // Faire quelque chose avec les images sélectionnées ici
-    final nonNullableImages = images.whereType<File>().toList();
-    widget.onImagesSelected(
-        nonNullableImages); // Appeler la fonction fournie par le parent avec les images sélectionnées
+  _handleSelection(List<dynamic> images) {
+    // final nonNullableImages = images
+    //     .where((image) => image != null && !(image is String))
+    //     .cast<File>()
+    //     .toList(); // filtrer les éléments null avant de les convertir en une liste de File
+
+    // widget.onImagesSelected(nonNullableImages);
+    widget.onImagesSelected(images);
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _images[index] = null;
+    });
+    _getImage(index);
   }
 
   @override
   Widget build(BuildContext context) {
+    // print(widget.defaultImages);
+    print(_images);
     return GridView.count(
       crossAxisCount: 3,
       shrinkWrap: true,
@@ -48,7 +66,7 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
       children: List.generate(
         3,
         (index) => GestureDetector(
-          onTap: () => _getImage(index),
+          onTap: () => _images[index] != null ? _removeImage(index) : _getImage(index),
           child: Container(
             width: _imageSize,
             height: _imageSize,
@@ -56,16 +74,25 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
               border: Border.all(width: 1, color: Colors.grey),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: _images[index] != null
-                ? Image.file(
-                    _images[index]!,
+            child: index<=widget.defaultImages!.length-1 &&
+                    widget.defaultImages != null &&
+                    widget.defaultImages![index] != null &&
+                    widget.defaultImages![index] == _images[index]
+                ? Image.network(
+                    widget.defaultImages![index],
                     fit: BoxFit.cover,
                     key: UniqueKey(),
                   )
-                : Icon(
-                    Icons.camera_alt,
-                    color: Colors.grey,
-                  ),
+                : _images.length >= 3 && _images[index] != null
+                    ? Image.file(
+                        _images[index]!,
+                        fit: BoxFit.cover,
+                        key: UniqueKey(), // Ajouter une clé unique
+                      )
+                    : Icon(
+                        Icons.camera_alt,
+                        color: Colors.grey,
+                      ),
           ),
         ),
       ),

@@ -32,10 +32,7 @@ class LoginTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate
-      ],
+      localizationsDelegates: [GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate],
       supportedLocales: [const Locale('en'), const Locale('fr')],
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -58,7 +55,10 @@ class LoginTabBar extends StatelessWidget {
             title: const Text('ColocApp'),
           ),
           body: const TabBarView(
-            children: [LoginPage(), SignupPage()],
+            children: [
+              LoginPage(),
+              SignupPage(),
+            ],
           ),
         ),
       ),
