@@ -1,9 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
 class PropertyImagePicker extends StatefulWidget {
-  final Function(List<dynamic>) onImagesSelected;
+  final Function(List<dynamic>, String?) onImagesSelected;
   final List<dynamic>? defaultImages;
 
   PropertyImagePicker({required this.onImagesSelected, this.defaultImages});
@@ -15,6 +14,7 @@ class PropertyImagePicker extends StatefulWidget {
 class _PropertyImagePickerState extends State<PropertyImagePicker> {
   List<dynamic> _images = [];
   final double _imageSize = 100;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -33,21 +33,29 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
 
     if (pickedFile != null) {
       final newImage = File(pickedFile.path);
+      final existingIndex = _images.indexOf(newImage);
 
-      setState(() {
-        if (index < _images.length) {
+      if (existingIndex >= 0) {
+        setState(() {
+          _images[existingIndex] = newImage;
+        });
+      } else {
+        setState(() {
           _images[index] = newImage;
-        } else {
-          _images.add(newImage);
-        }
-      });
+        });
+      }
 
-      _handleSelection(_images.where((image) => image != null).toList());
+      _handleSelection(_images.where((image) => image != null).map((image) => image!).toList());
     }
   }
 
   _handleSelection(List<dynamic> images) {
-    widget.onImagesSelected(images);
+    if (images.length >= 3) {
+      setState(() {
+        _errorMessage = null;
+      });
+    }
+    widget.onImagesSelected(images, _errorMessage);
   }
 
   void _removeImage(int index) {
@@ -84,25 +92,38 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 3,
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      children: List.generate(
-        3,
-        (index) => GestureDetector(
-          onTap: () => _images.length < index && _images[index] != null ? _removeImage(index) : _getImage(index),
-          child: Container(
-            width: _imageSize,
-            height: _imageSize,
-            decoration: BoxDecoration(
-              border: Border.all(width: 1, color: Colors.grey),
-              borderRadius: BorderRadius.circular(8),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GridView.count(
+          crossAxisCount: 3,
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          children: List.generate(
+            3,
+            (index) => GestureDetector(
+              onTap: () => _images.length < index && _images[index] != null ? _removeImage(index) : _getImage(index),
+              child: Container(
+                width: _imageSize,
+                height: _imageSize,
+                decoration: BoxDecoration(
+                  border: Border.all(width: 1, color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: _buildImageWidget(index),
+              ),
             ),
-            child: _buildImageWidget(index),
           ),
         ),
-      ),
+        if (_errorMessage != null)
+          Text(
+            _errorMessage!,
+            style: TextStyle(
+              color: Colors.red,
+              fontSize: 12,
+            ),
+          ),
+      ],
     );
   }
 }

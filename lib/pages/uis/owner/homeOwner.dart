@@ -155,6 +155,8 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                           List<dynamic> newImagess = (doc['imagesUrl'] as String).split('|');
 
                                           var townSearchText = "";
+
+                                          // j'envoi un tableau de taille 1 si  il n'y a que 1 image, se demerder à regler ce probleme pour ajouter une nouvelle image
                                           showModalBottomSheet(
                                             isScrollControlled: true,
                                             context: context,
@@ -331,9 +333,17 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                           ),
                                                           const SizedBox(height: 10),
                                                           PropertyImagePicker(
-                                                            onImagesSelected: (List<dynamic> images) {
-                                                              {
+                                                            onImagesSelected: (List<dynamic> images, String? errorMessage) {
+                                                              setState(() {
                                                                 newImagess = images;
+                                                              });
+
+                                                              if (errorMessage != null) {
+                                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                                  SnackBar(
+                                                                    content: Text(errorMessage),
+                                                                  ),
+                                                                );
                                                               }
                                                             },
                                                             defaultImages: newImagess,
@@ -350,7 +360,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                       var arrayUrl = [];
                                                                       var baseImages = (doc['imagesUrl'] as String).split('|');
                                                                       for (int i = 0; i < newImagess.length; i++) {
-                                                                        if (!(newImagess[i] is String)&&i<baseImages.length) {
+                                                                        if (!(newImagess[i] is String) && i < baseImages.length) {
                                                                           var baseUrl = baseImages[i];
                                                                           final ref = FirebaseStorage.instance.refFromURL(baseUrl);
                                                                           await ref.delete();
@@ -531,7 +541,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                               return null;
                             },
                           ),
-
                           TextFormField(
                             controller: _addressController,
                             decoration: const InputDecoration(
@@ -658,17 +667,34 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                           ),
                           const SizedBox(height: 10),
                           PropertyImagePicker(
-                            onImagesSelected: (List<dynamic> images) {
-                              List<String> imagePaths = [];
-                              images.forEach((image) {
-                                imagePaths.add(image.path);
-                              });
-                              List<File?> files = imagePaths.map((path) => path != null ? File(path) : null).toList();
-                              setState(() {
-                                _images = files;
-                              });
-                            },
-                          ),
+                              // onImagesSelected: (List<dynamic> images) {
+                              //   List<String> imagePaths = [];
+                              //   images.forEach((image) {
+                              //     imagePaths.add(image.path);
+                              //   });
+                              //   List<File?> files = imagePaths.map((path) => path != null ? File(path) : null).toList();
+                              //   setState(() {
+                              //     _images = files;
+                              //   });
+                              // },
+                              onImagesSelected: (List<dynamic> images, String? errorMessage) {
+                            List<String> imagePaths = [];
+                            images.forEach((image) {
+                              imagePaths.add(image.path);
+                            });
+                            List<File?> files = imagePaths.map((path) => path != null ? File(path) : null).toList();
+                            setState(() {
+                              _images = files;
+                            });
+
+                            if (errorMessage != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(errorMessage),
+                                ),
+                              );
+                            }
+                          }),
                           _isLoading
                               ? Center(child: CircularProgressIndicator())
                               : ElevatedButton(
@@ -729,6 +755,8 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                     _cityTextEditingController.clear();
                                     _cntCity.clearDropDown();
                                     _cntPropertyType.clearDropDown();
+                                    _images = [];
+                                    _imageUrls = "[]";
                                   },
                                   child: const Text(
                                     'Enregistrer',
