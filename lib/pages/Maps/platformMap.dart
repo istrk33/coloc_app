@@ -12,9 +12,9 @@ class MyPlatformMap extends StatefulWidget {
 
 class _MyPlatformMapState extends State<MyPlatformMap> {
   final CollectionReference announceCollection =
-    FirebaseFirestore.instance.collection('announce');
-final CollectionReference propertyCollection =
-    FirebaseFirestore.instance.collection('property');
+      FirebaseFirestore.instance.collection('announce');
+  final CollectionReference propertyCollection =
+      FirebaseFirestore.instance.collection('property');
   String imgUrl = "";
   String announceTitle = "";
   int rentValue = 0;
@@ -57,8 +57,7 @@ final CollectionReference propertyCollection =
                       width: double.infinity,
                       decoration: BoxDecoration(
                         image: DecorationImage(
-                          image: NetworkImage(
-                              imgUrl),
+                          image: NetworkImage(imgUrl),
                           fit: BoxFit.cover,
                           onError: (exception, stackTrace) {
                             Text('no url specified');
@@ -84,10 +83,35 @@ final CollectionReference propertyCollection =
                     ),
                   ),
                   const SizedBox(
-                    height: 20,
+                    height: 10,
                   ),
                   Padding(
-                    padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                    padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+                    child: Text(
+                      rentValue.toString() + '\u{20AC}',
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                        color: MyTheme.blue3,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Row(
+                                children: <Widget>[
+                                  getTimeBoxUI(roommatesNumber.toString(),
+                                      'Colocataires'),
+                                  getTimeBoxUI(
+                                      depositAmount.toString() + '\u{20AC}',
+                                      'Caution'),
+                                  getTimeBoxUI('3', 'Chambres'),
+                                ],
+                              ),
+                            ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(10, 5, 10, 0),
                     child: Text(
                       description,
                       textAlign: TextAlign.justify,
@@ -98,6 +122,9 @@ final CollectionReference propertyCollection =
                         color: Color.fromARGB(255, 26, 26, 26),
                       ),
                     ),
+                  ),
+                  const SizedBox(
+                    height: 10,
                   ),
                   Center(
                     child: ElevatedButton(
@@ -129,13 +156,14 @@ final CollectionReference propertyCollection =
 
   void initMarker(String id, double latitude, double longitude) async {
     var markerIdVal = id.toString();
-    final LatLng _latLng =LatLng(latitude, longitude);
-    final MarkerId markerId = MarkerId(markerIdVal);
+    final LatLng _latLng = LatLng(latitude, longitude);
+    final MarkerId markerId = MarkerId(id);
     final Marker marker = Marker(
       markerId: markerId,
       position: _latLng,
-     // infoWindow: InfoWindow(
-          //title: specify['property_name'], snippet: specify['address']),
+      consumeTapEvents: false,
+      // infoWindow: InfoWindow(
+      //title: specify['property_name'], snippet: specify['address']),
       icon: customIcon,
       onTap: () {
         _showModalBottomSheet(context, id);
@@ -146,8 +174,7 @@ final CollectionReference propertyCollection =
     });
   }
 
-
-getAnnounceWithPropertyLatLng() async {
+/*getAnnounceWithPropertyLatLng() async {
   QuerySnapshot<Object?> announceSnap = await announceCollection.get();
   List propertyIds =
       announceSnap.docs.map((doc) => doc['property_id']).toList();
@@ -168,66 +195,61 @@ getAnnounceWithPropertyLatLng() async {
       /*for (int i = 0; i < positionList.length; i++) {
           initMarker(positionList[i], positionList[i]);
         };*/
-}
+}*/
 
-Future<void> _loadAnnounceData(id) async {
-  final propertyRef = FirebaseFirestore.instance.collection('property').doc(id);
-  final announceData = await FirebaseFirestore.instance
-      .collection('announce')
-      .where('property_id', isEqualTo: propertyRef)
-      .get();
+  Future<void> _loadAnnounceData(id) async {
+    final propertyRef =
+        FirebaseFirestore.instance.collection('property').doc(id);
+    final announceData = await FirebaseFirestore.instance
+        .collection('announce')
+        .where('property_id', isEqualTo: propertyRef)
+        .get();
 
-  if (announceData.size == 1) {
-    final data = announceData.docs[0].data();
-    announceTitle = data['title'];
-    imgUrl = data['img_url'];
-    rentValue = data['price'];
-    roommatesNumber = data['max_roomates'];
-    depositAmount = data['deposit_amount'];
-    description = data['description'];
-  } else {
-    throw Exception('Aucune annonce trouvée pour l\'ID de propriété spécifié.');
+    if (announceData.size == 1) {
+      final data = announceData.docs[0].data();
+      announceTitle = data['title'];
+      imgUrl = data['img_url'];
+      rentValue = data['price'];
+      roommatesNumber = data['max_roomates'];
+      depositAmount = data['deposit_amount'];
+      description = data['description'];
+    } else {
+      throw Exception(
+          'Aucune annonce trouvée pour l\'ID de propriété spécifié.');
+    }
   }
-}
 
+  Future<void> initMarkersData() async {
+    List<Map<String, dynamic>> propertyList = await getAnnounceWithProperty();
+    print(propertyList);
 
+    propertyList.forEach((property) {
+      String id = property['id'];
+      GeoPoint location = property['location'];
 
-Future<void> initMarkersData() async {
-  List<Map<String, dynamic>> propertyList = await getAnnounceWithProperty();
+      initMarker(id, location.latitude, location.longitude);
+    });
+  }
 
-  propertyList.forEach((property) {
-    String id = property['id'];
-    GeoPoint location = property['location'];
+  Future<List<Map<String, dynamic>>> getAnnounceWithProperty() async {
+    QuerySnapshot<Object?> announceSnap = await announceCollection.get();
+    List propertyIds =
+        announceSnap.docs.map((doc) => doc['property_id']).toList();
 
-    initMarker(id, location.latitude, location.longitude);
-  });
-}
+    QuerySnapshot<Map<String, dynamic>> propertySnap = await propertyCollection
+        .where(FieldPath.documentId, whereIn: propertyIds)
+        .get() as QuerySnapshot<Map<String, dynamic>>;
 
+    List<Map<String, dynamic>> propertyList = propertySnap.docs.map((doc) {
+      Map<String, dynamic> data = doc.data();
+      return {
+        'id': doc.id,
+        'location': data['position'],
+      };
+    }).toList();
 
-Future<List<Map<String, dynamic>>> getAnnounceWithProperty() async {
-  QuerySnapshot<Object?> announceSnap = await announceCollection.get();
-  List propertyIds =
-      announceSnap.docs.map((doc) => doc['property_id']).toList();
-      List announceIds =
-      announceSnap.docs.map((doc) => doc.id).toList();
-
-  QuerySnapshot<Map<String, dynamic>> propertySnap =
-      await propertyCollection
-          .where(FieldPath.documentId, whereIn: propertyIds)
-          .get() as QuerySnapshot<Map<String, dynamic>>;
-
-  List<Map<String, dynamic>> propertyList = propertySnap.docs.map((doc) {
-    Map<String, dynamic> data = doc.data();
-    return {
-      'id': doc.id,
-      'location': data['position'],
-    };
-  }).toList();
-
-  return propertyList;
-}
-
-
+    return propertyList;
+  }
 
   @override
   void initState() {
@@ -280,5 +302,53 @@ Future<List<Map<String, dynamic>>> getAnnounceWithProperty() async {
         LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
       ));
     }
+  }
+
+  Widget getTimeBoxUI(String text1, String txt2) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                offset: const Offset(1.1, 1.1),
+                blurRadius: 8.0),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.only(
+              left: 18.0, right: 18.0, top: 12.0, bottom: 12.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                text1,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  letterSpacing: 0.27,
+                  color: MyTheme.blue3,
+                ),
+              ),
+              Text(
+                txt2,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.w200,
+                  fontSize: 14,
+                  letterSpacing: 0.27,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
