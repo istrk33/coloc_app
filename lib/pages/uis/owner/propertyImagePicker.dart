@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class PropertyImagePicker extends StatefulWidget {
-  final dynamic Function(List<dynamic>) onImagesSelected;
+  final Function(List<dynamic>) onImagesSelected;
   final List<dynamic>? defaultImages;
 
   PropertyImagePicker({required this.onImagesSelected, this.defaultImages});
@@ -20,7 +20,11 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
   void initState() {
     super.initState();
     _images = widget.defaultImages != null
-        ? widget.defaultImages!.map((image) => image != null ? (image is String ? image : File(image)) : null).toList()
+        ? widget.defaultImages!
+            .map(
+              (image) => image != null ? (image is String ? image : File(image)) : null,
+            )
+            .toList()
         : List.generate(3, (index) => null);
   }
 
@@ -31,20 +35,18 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
       final newImage = File(pickedFile.path);
 
       setState(() {
-        _images[index] = newImage;
+        if (index < _images.length) {
+          _images[index] = newImage;
+        } else {
+          _images.add(newImage);
+        }
       });
 
-      _handleSelection(_images.where((image) => image != null).map((image) => image!).toList());
+      _handleSelection(_images.where((image) => image != null).toList());
     }
   }
 
   _handleSelection(List<dynamic> images) {
-    // final nonNullableImages = images
-    //     .where((image) => image != null && !(image is String))
-    //     .cast<File>()
-    //     .toList(); // filtrer les éléments null avant de les convertir en une liste de File
-
-    // widget.onImagesSelected(nonNullableImages);
     widget.onImagesSelected(images);
   }
 
@@ -55,10 +57,33 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
     _getImage(index);
   }
 
+  Widget _buildImageWidget(int index) {
+    final dynamic image = (index < _images.length) ? _images[index] : null;
+
+    if (image == null) {
+      return Icon(
+        Icons.camera_alt,
+        color: Colors.grey,
+      );
+    }
+
+    if (image is String) {
+      return Image.network(
+        image,
+        fit: BoxFit.cover,
+        key: UniqueKey(),
+      );
+    }
+
+    return Image.file(
+      image,
+      fit: BoxFit.cover,
+      key: UniqueKey(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // print(widget.defaultImages);
-    print(_images);
     return GridView.count(
       crossAxisCount: 3,
       shrinkWrap: true,
@@ -66,7 +91,7 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
       children: List.generate(
         3,
         (index) => GestureDetector(
-          onTap: () => _images[index] != null ? _removeImage(index) : _getImage(index),
+          onTap: () => _images.length < index && _images[index] != null ? _removeImage(index) : _getImage(index),
           child: Container(
             width: _imageSize,
             height: _imageSize,
@@ -74,25 +99,7 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
               border: Border.all(width: 1, color: Colors.grey),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: index<=widget.defaultImages!.length-1 &&
-                    widget.defaultImages != null &&
-                    widget.defaultImages![index] != null &&
-                    widget.defaultImages![index] == _images[index]
-                ? Image.network(
-                    widget.defaultImages![index],
-                    fit: BoxFit.cover,
-                    key: UniqueKey(),
-                  )
-                : _images.length >= 3 && _images[index] != null
-                    ? Image.file(
-                        _images[index]!,
-                        fit: BoxFit.cover,
-                        key: UniqueKey(), // Ajouter une clé unique
-                      )
-                    : Icon(
-                        Icons.camera_alt,
-                        color: Colors.grey,
-                      ),
+            child: _buildImageWidget(index),
           ),
         ),
       ),

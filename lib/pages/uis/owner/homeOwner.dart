@@ -43,8 +43,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
     if (value != "") {
       fetchData(value, "searchCity");
     } else {}
-    // _cityTextEditingController.clear();
-    // print('You entered: $value');
   }
 
   @override
@@ -112,7 +110,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                             leading: Image.network(
                               (doc['imagesUrl'] as String).split('|')[0],
                               errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                return Image.asset('assets/images/placeholder.jpg'); // L'image par défaut
+                                return Image.asset('assets/images/placeholder.jpg');
                               },
                               width: 50,
                               height: 50,
@@ -157,11 +155,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                           List<dynamic> newImagess = (doc['imagesUrl'] as String).split('|');
 
                                           var townSearchText = "";
-                                          // List<String?> myList = List.generate(3, (index) => newImages[index] ? 'Hello' : null);
-                                          // newImages.addAll(List.filled(3 - newImages.length, null));
-
-                                          // final newImages = newImagess ?? [];
-                                          // newImages.addAll(List.filled(3 - newImages.length, null));
                                           showModalBottomSheet(
                                             isScrollControlled: true,
                                             context: context,
@@ -247,11 +240,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                           ),
                                                           DropDownTextField(
                                                             initialValue: newCity,
-                                                            // controller:
-                                                            //     _cntCity,
                                                             clearOption: false,
-                                                            // enableSearch: true,
-                                                            // dropdownColor: Colors.green,
                                                             searchDecoration: InputDecoration(
                                                               contentPadding: EdgeInsets.symmetric(
                                                                 horizontal: 16.0,
@@ -269,7 +258,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                             dropDownItemCount: 6,
                                                             dropDownList: _cityOptions,
                                                             onChanged: (val) {
-                                                              // propertyTypeId = val;
                                                               newCity = val.value;
                                                             },
                                                             textFieldDecoration: InputDecoration(
@@ -277,8 +265,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                             ),
                                                           ),
                                                           DropDownTextField(
-                                                            // controller:
-                                                            //     _cntPropertyType,
                                                             initialValue: propertyTypeLabel,
                                                             clearOption: false,
                                                             searchDecoration: InputDecoration(
@@ -360,29 +346,11 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                       _isLoading = true;
                                                                     });
                                                                     if (_formKey.currentState!.validate()) {
-                                                                      print(
-                                                                          "===================================debugStart===================================");
-                                                                      print("newPropertyName $newPropertyName");
-                                                                      print("newPropertyDescription $newPropertyDescription");
-                                                                      print("newAddress $newAddress");
-                                                                      print("newCity $newCity");
-                                                                      print("newPropertyTypeId $newPropertyTypeId");
-                                                                      print("newNumberRooms $newNumberRooms");
-                                                                      print("newSurfaceArea $newSurfaceArea");
-                                                                      print("newImages $newImagess");
-
-                                                                      print(
-                                                                          "===================================debugEnd===================================");
-                                                                      // String newAddressForQuery = newAddress + " " + newCity;
-                                                                      // String url =
-                                                                      //     "https://api-adresse.data.gouv.fr/search/?q=${newAddressForQuery.replaceAll(" ", "+").replaceAll(",", "")}&limit=1";
-                                                                      // await fetchData(url, "requestType");
-
                                                                       // send img if new image, and compare with old
                                                                       var arrayUrl = [];
                                                                       var baseImages = (doc['imagesUrl'] as String).split('|');
                                                                       for (int i = 0; i < newImagess.length; i++) {
-                                                                        if (!(newImagess[i] is String)) {
+                                                                        if (!(newImagess[i] is String)&&i<baseImages.length) {
                                                                           var baseUrl = baseImages[i];
                                                                           final ref = FirebaseStorage.instance.refFromURL(baseUrl);
                                                                           await ref.delete();
@@ -401,34 +369,17 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                       }
 
                                                                       // Submit form
-                                                                      // final CollectionReference<Map<String, dynamic>> users =
-                                                                      //     FirebaseFirestore.instance.collection('Users');
                                                                       final CollectionReference<Map<String, dynamic>> propertyTypes =
                                                                           FirebaseFirestore.instance.collection('property_type');
 
-                                                                      // final DocumentReference<Map<String, dynamic>> userRef =
-                                                                      //     users.doc(auth.currentUser!.uid.toString());
                                                                       final DocumentReference<Map<String, dynamic>> propertyTypeRef =
                                                                           propertyTypes.doc(newPropertyTypeId);
-                                                                      // final collectionRef = FirebaseFirestore.instance.collection('property');
-                                                                      // await collectionRef.add({
-                                                                      //   'address': address,
-                                                                      //   'description': _descriptionController.text,
-                                                                      //   'property_name': _propertyNameController.text,
-                                                                      //   'room_number': _roomNumberController.text,
-                                                                      //   'surface_area': _surfaceController.text,
-                                                                      //   'id_owner': userRef,
-                                                                      //   'property_type_id': propertyTypeRef,
-                                                                      //   'position': _newHouseLocation,
-                                                                      //   'imagesUrl': _imageUrls,
-                                                                      // });
                                                                       FirebaseFirestore.instance
                                                                           .collection('property')
-                                                                          .doc(doc
-                                                                              .id) // remplacer par l'id du document que vous souhaitez mettre à jour
+                                                                          .doc(doc.id)
                                                                           .update({
                                                                             'address': newAddress,
-                                                                            'city': newAddress,
+                                                                            'city': newCity,
                                                                             'description': newPropertyDescription,
                                                                             'property_name': newPropertyName,
                                                                             'room_number': newNumberRooms,
@@ -444,15 +395,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                     setState(() {
                                                                       _isLoading = false;
                                                                     });
-                                                                    // _formKey.currentState?.reset();
-                                                                    // _propertyNameController.clear();
-                                                                    // _descriptionController.clear();
-                                                                    // _addressController.clear();
-                                                                    // _roomNumberController.clear();
-                                                                    // _surfaceController.clear();
-                                                                    // _cityTextEditingController.clear();
-                                                                    // _cntCity.clearDropDown();
-                                                                    // _cntPropertyType.clearDropDown();
                                                                     setState(() {
                                                                       _isLoading = false;
                                                                     });
@@ -624,11 +566,8 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                             ],
                           ),
                           DropDownTextField(
-                            // initialValue: "name4",
                             controller: _cntCity,
                             clearOption: false,
-                            // enableSearch: true,
-                            // dropdownColor: Colors.green,
                             searchDecoration: InputDecoration(
                               contentPadding: EdgeInsets.symmetric(
                                 horizontal: 16.0,
@@ -730,7 +669,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                               });
                             },
                           ),
-                          // const SizedBox(height: 20),
                           _isLoading
                               ? Center(child: CircularProgressIndicator())
                               : ElevatedButton(
@@ -738,7 +676,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                     setState(() {
                                       _isLoading = true;
                                     });
-                                    // String url="https://api-adresse.data.gouv.fr/search/?q=7+rue+de+guyenne+Pessac+Gironde+33&limit=1";
                                     if (_formKey.currentState!.validate()) {
                                       String address = _addressController.text + " " + _selectedCity!;
                                       String url =
@@ -765,7 +702,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
 
                                       final DocumentReference<Map<String, dynamic>> userRef = users.doc(auth.currentUser!.uid.toString());
                                       final DocumentReference<Map<String, dynamic>> propertyTypeRef = propertyTypes.doc(_selectedPropertyTypeUid);
-
                                       final collectionRef = FirebaseFirestore.instance.collection('property');
                                       await collectionRef.add({
                                         'address': _addressController.text,
