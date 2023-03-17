@@ -19,9 +19,12 @@ class HomeOwner extends StatefulWidget {
 }
 
 class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
+  late TabController _tabController;
+  bool _showFloatingActionButton = true;
   final _formKey = GlobalKey<FormState>();
-  List<File?> _images = [];
-  String _imageUrls = "";
+  dynamic _selectedImage1;
+  dynamic _selectedImage2;
+  dynamic _selectedImage3;
   late SingleValueDropDownController _cntPropertyType;
   late SingleValueDropDownController _cntCity;
   late List<DropDownValueModel> _optionsPropertyType;
@@ -37,7 +40,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
   final _surfaceController = TextEditingController();
   final _cityTextEditingController = TextEditingController();
   late GeoPoint _newHouseLocation;
-  bool _isLoading = false;
 
   void _handleSubmitted(String value) {
     if (value != "") {
@@ -54,11 +56,13 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
     _addressController.dispose();
     _roomNumberController.dispose();
     _surfaceController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
   @override
   void initState() {
+    _tabController = TabController(length: 2, vsync: this);
     _cityOptions = [];
     _loadPropertyTypeOptions();
     _cntPropertyType = SingleValueDropDownController();
@@ -67,660 +71,766 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
     super.initState();
   }
 
+  void _onTabChanged() {
+    setState(() {
+      _showFloatingActionButton = _tabController.index == 0;
+      print(_showFloatingActionButton);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.all(20),
+      body: DefaultTabController(
+        length: 2,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(15.0),
-              child: CupertinoSearchTextField(
-                placeholder: 'Rechercher',
+          children: <Widget>[
+            Material(
+              color: Color.fromARGB(255, 255, 255, 255),
+              child: TabBar(
+                controller: _tabController,
+                tabs: [
+                  Tab(
+                    icon: Icon(
+                      Icons.house,
+                      color: MyTheme.blue1,
+                    ),
+                  ),
+                  Tab(
+                    icon: Icon(
+                      Icons.list_alt,
+                      color: MyTheme.blue1,
+                    ),
+                  ),
+                ],
+                onTap: (_) {
+                  _onTabChanged();
+                },
+                
               ),
             ),
             Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('property')
-                    .where('id_owner', isEqualTo: FirebaseFirestore.instance.collection('Users').doc(auth.currentUser!.uid))
-                    .snapshots(),
-                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Une erreur est survenue.'));
-                  }
+              flex: 1,
+              child: TabBarView(
+                controller: _tabController,
+              //  dragEndBehavior: DragEndBehavior.end ,
+              
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.all(15.0),
+                          child: CupertinoSearchTextField(
+                            placeholder: 'Rechercher',
+                          ),
+                        ),
+                        Expanded(
+                          child: StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('property')
+                                .where('id_owner', isEqualTo: FirebaseFirestore.instance.collection('Users').doc(auth.currentUser!.uid))
+                                .snapshots(),
+                            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                              if (snapshot.hasError) {
+                                return Center(child: Text('Une erreur est survenue.'));
+                              }
 
-                  if (!snapshot.hasData) {
-                    return Center(child: CircularProgressIndicator());
-                  }
+                              if (!snapshot.hasData) {
+                                return Center(child: CircularProgressIndicator());
+                              }
 
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: snapshot.data!.docs.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      DocumentSnapshot doc = snapshot.data!.docs[index];
+                              return ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: snapshot.data!.docs.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  DocumentSnapshot doc = snapshot.data!.docs[index];
 
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          ListTile(
-                            contentPadding: EdgeInsets.all(0),
-                            leading: Image.network(
-                              (doc['imagesUrl'] as String).split('|')[0],
-                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                return Image.asset('assets/images/placeholder.jpg');
-                              },
-                              width: 50,
-                              height: 50,
-                            ),
-                            title: Text(doc['property_name']),
-                            subtitle: Container(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    doc['description'],
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
-                                      IconButton(
-                                        icon: Icon(Icons.publish),
-                                        color: Colors.green,
-                                        onPressed: () {},
-                                      ),
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.edit,
-                                          color: MyTheme.blue3,
+                                      ListTile(
+                                        contentPadding: EdgeInsets.all(0),
+                                        leading: Image.network(
+                                          (doc['imageUrl1'] as String),
+                                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                            return Image.asset('assets/images/placeholder.jpg');
+                                          },
+                                          width: 50,
+                                          height: 50,
                                         ),
-                                        onPressed: () async {
-                                          var ville = (doc["city"] as String).split(',')[0];
-                                          await fetchData("https://geo.api.gouv.fr/communes?nom=${ville}&fields=departement&limit=5", "searchCity");
-                                          final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-                                          DocumentReference propertyTypeRef = _firestore.collection('property_type').doc(doc["property_type_id"].id);
-                                          DocumentSnapshot snapshot = await propertyTypeRef.get();
-
-                                          var data = snapshot.data() as Map<String, dynamic>;
-                                          String? propertyTypeLabel = data['property_type_label'] as String;
-
-                                          var newPropertyName = doc["property_name"] as String;
-                                          var newPropertyDescription = doc["description"] as String;
-                                          var newAddress = (doc["address"] as String);
-                                          var newCity = (doc["city"] as String);
-                                          var newPropertyTypeId = doc["property_type_id"].id;
-                                          var newNumberRooms = doc["room_number"];
-                                          var newSurfaceArea = doc["surface_area"];
-                                          List<dynamic> newImagess = (doc['imagesUrl'] as String).split('|');
-
-                                          var townSearchText = "";
-
-                                          // j'envoi un tableau de taille 1 si  il n'y a que 1 image, se demerder à regler ce probleme pour ajouter une nouvelle image
-                                          showModalBottomSheet(
-                                            isScrollControlled: true,
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return SingleChildScrollView(
-                                                child: Padding(
-                                                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-                                                  child: Container(
-                                                    padding: const EdgeInsets.all(20),
-                                                    child: Form(
-                                                      key: _formKey,
-                                                      child: Column(
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: [
-                                                          Text(
-                                                            "Editer la propriété ${doc.id}",
-                                                            style: TextStyle(
-                                                              fontSize: 20,
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
-                                                          ),
-                                                          TextFormField(
-                                                            onChanged: (value) => {newPropertyName = value},
-                                                            initialValue: doc["property_name"] as String,
-                                                            decoration: const InputDecoration(
-                                                              labelText: 'Nom de la propriété',
-                                                            ),
-                                                            validator: (value) {
-                                                              if (value!.isEmpty) {
-                                                                return 'Le nom ne peux pas être vide';
-                                                              }
-                                                              return null;
-                                                            },
-                                                          ),
-                                                          TextFormField(
-                                                            onChanged: (value) => {newPropertyDescription = value},
-                                                            initialValue: doc["description"] as String,
-                                                            minLines: 2,
-                                                            maxLines: 3,
-                                                            decoration: const InputDecoration(
-                                                              labelText: 'Description',
-                                                            ),
-                                                            validator: (value) {
-                                                              if (value!.isEmpty) {
-                                                                return 'La description ne peux pas être vide';
-                                                              }
-                                                              return null;
-                                                            },
-                                                          ),
-                                                          TextFormField(
-                                                            onChanged: (value) => {newAddress = value},
-                                                            initialValue: newAddress,
-                                                            decoration: const InputDecoration(
-                                                              labelText: 'Adresse',
-                                                            ),
-                                                            validator: (value) {
-                                                              if (value!.isEmpty) {
-                                                                return 'L\'adresse ne peux pas être vide';
-                                                              }
-                                                              return null;
-                                                            },
-                                                          ),
-                                                          Row(
-                                                            children: [
-                                                              Expanded(
-                                                                child: TextField(
-                                                                  decoration: InputDecoration(
-                                                                    hintText: 'Recherchez une ville',
-                                                                  ),
-                                                                  onSubmitted: _handleSubmitted,
-                                                                  onChanged: (value) => {townSearchText = value},
-                                                                ),
-                                                              ),
-                                                              SizedBox(width: 16.0),
-                                                              ElevatedButton(
-                                                                onPressed: () {
-                                                                  _handleSubmitted(
-                                                                      "https://geo.api.gouv.fr/communes?nom=${townSearchText}&fields=departement&limit=5");
-                                                                },
-                                                                child: Icon(Icons.search),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          DropDownTextField(
-                                                            initialValue: newCity,
-                                                            clearOption: false,
-                                                            searchDecoration: InputDecoration(
-                                                              contentPadding: EdgeInsets.symmetric(
-                                                                horizontal: 16.0,
-                                                                vertical: 12.0,
-                                                              ),
-                                                              hintText: "Ville",
-                                                            ),
-                                                            validator: (value) {
-                                                              if (value == null || value.isEmpty) {
-                                                                return "Choisissez une ville";
-                                                              } else {
-                                                                return null;
-                                                              }
-                                                            },
-                                                            dropDownItemCount: 6,
-                                                            dropDownList: _cityOptions,
-                                                            onChanged: (val) {
-                                                              newCity = val.value;
-                                                            },
-                                                            textFieldDecoration: InputDecoration(
-                                                              hintText: "Recherchez une ville ci-dessus",
-                                                            ),
-                                                          ),
-                                                          DropDownTextField(
-                                                            initialValue: propertyTypeLabel,
-                                                            clearOption: false,
-                                                            searchDecoration: InputDecoration(
-                                                              contentPadding: EdgeInsets.symmetric(
-                                                                horizontal: 16.0,
-                                                                vertical: 12.0,
-                                                              ),
-                                                              hintText: "Type de propriété",
-                                                            ),
-                                                            validator: (value) {
-                                                              if (value == null || value.isEmpty) {
-                                                                return "Choisissez le type de votre propriété";
-                                                              } else {
-                                                                return null;
-                                                              }
-                                                            },
-                                                            dropDownItemCount: 6,
-                                                            dropDownList: _optionsPropertyType,
-                                                            onChanged: (val) {
-                                                              setState(() {
-                                                                newPropertyTypeId = val.value;
-                                                              });
-                                                            },
-                                                            textFieldDecoration: InputDecoration(
-                                                              hintText: "Type de propriété",
-                                                            ),
-                                                          ),
-                                                          Row(
-                                                            children: [
-                                                              Expanded(
-                                                                child: TextFormField(
-                                                                  onChanged: (value) => {newNumberRooms = value},
-                                                                  initialValue: doc["room_number"],
-                                                                  keyboardType: TextInputType.number,
-                                                                  decoration: const InputDecoration(
-                                                                    labelText: 'Nombre de chambre',
-                                                                  ),
-                                                                  validator: (value) {
-                                                                    if (value!.isEmpty) {
-                                                                      return 'Nombre de chambre incorrect';
-                                                                    }
-                                                                    return null;
-                                                                  },
-                                                                ),
-                                                              ),
-                                                              SizedBox(width: 16),
-                                                              Expanded(
-                                                                child: TextFormField(
-                                                                  onChanged: (value) => {newSurfaceArea = value},
-                                                                  initialValue: doc["surface_area"],
-                                                                  keyboardType: TextInputType.number,
-                                                                  decoration: const InputDecoration(
-                                                                    labelText: 'Surface en m²',
-                                                                  ),
-                                                                  validator: (value) {
-                                                                    if (value!.isEmpty) {
-                                                                      return 'Valeur incorrecte';
-                                                                    }
-                                                                    return null;
-                                                                  },
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          const SizedBox(height: 10),
-                                                          PropertyImagePicker(
-                                                            onImagesSelected: (List<dynamic> images, String? errorMessage) {
-                                                              setState(() {
-                                                                newImagess = images;
-                                                              });
-
-                                                              if (errorMessage != null) {
-                                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                                  SnackBar(
-                                                                    content: Text(errorMessage),
-                                                                  ),
-                                                                );
-                                                              }
-                                                            },
-                                                            defaultImages: newImagess,
-                                                          ),
-                                                          _isLoading
-                                                              ? Center(child: CircularProgressIndicator())
-                                                              : ElevatedButton(
-                                                                  onPressed: () async {
-                                                                    setState(() {
-                                                                      _isLoading = true;
-                                                                    });
-                                                                    if (_formKey.currentState!.validate()) {
-                                                                      // send img if new image, and compare with old
-                                                                      var arrayUrl = [];
-                                                                      var baseImages = (doc['imagesUrl'] as String).split('|');
-                                                                      for (int i = 0; i < newImagess.length; i++) {
-                                                                        if (!(newImagess[i] is String) && i < baseImages.length) {
-                                                                          var baseUrl = baseImages[i];
-                                                                          final ref = FirebaseStorage.instance.refFromURL(baseUrl);
-                                                                          await ref.delete();
-
-                                                                          final storageRef = FirebaseStorage.instance.ref();
-                                                                          final imageRef =
-                                                                              storageRef.child('images/${DateTime.now().millisecondsSinceEpoch}.jpg');
-                                                                          final uploadTask = imageRef.putFile(newImagess[i]);
-                                                                          final snapshot = await uploadTask;
-                                                                          final downloadUrl = await snapshot.ref.getDownloadURL();
-                                                                          // arrayUrl[i] = downloadUrl;
-                                                                          arrayUrl.add(downloadUrl);
-                                                                        } else {
-                                                                          arrayUrl.add(newImagess[i]);
-                                                                        }
-                                                                      }
-
-                                                                      // Submit form
-                                                                      final CollectionReference<Map<String, dynamic>> propertyTypes =
-                                                                          FirebaseFirestore.instance.collection('property_type');
-
-                                                                      final DocumentReference<Map<String, dynamic>> propertyTypeRef =
-                                                                          propertyTypes.doc(newPropertyTypeId);
-                                                                      FirebaseFirestore.instance
-                                                                          .collection('property')
-                                                                          .doc(doc.id)
-                                                                          .update({
-                                                                            'address': newAddress,
-                                                                            'city': newCity,
-                                                                            'description': newPropertyDescription,
-                                                                            'property_name': newPropertyName,
-                                                                            'room_number': newNumberRooms,
-                                                                            'surface_area': newSurfaceArea,
-                                                                            'property_type_id': propertyTypeRef,
-                                                                            'position': _newHouseLocation,
-                                                                            'imagesUrl': arrayUrl.join('|'),
-                                                                          })
-                                                                          .then((_) => print('Mise à jour réussie'))
-                                                                          .catchError((error) => print('Erreur de mise à jour: $error'));
-                                                                      Navigator.pop(context);
-                                                                    }
-                                                                    setState(() {
-                                                                      _isLoading = false;
-                                                                    });
-                                                                    setState(() {
-                                                                      _isLoading = false;
-                                                                    });
-                                                                  },
-                                                                  child: const Text(
-                                                                    'Enregistrer',
-                                                                  ),
-                                                                ),
-                                                        ],
-                                                      ),
-                                                    ),
+                                        title: Text(doc['property_name']),
+                                        subtitle: Container(
+                                          child: Column(
+                                            children: [
+                                              Text(
+                                                doc['description'],
+                                              ),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                children: [
+                                                  IconButton(
+                                                    icon: Icon(Icons.publish),
+                                                    color: Colors.green,
+                                                    onPressed: () {},
                                                   ),
-                                                ),
-                                              );
-                                            },
-                                          );
-                                        },
-                                      ),
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.delete,
-                                          color: Colors.red,
-                                        ),
-                                        onPressed: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                title: Text('Attention'),
-                                                content: Text(
-                                                  'Voulez vous supprimer cette propriété ?',
-                                                ),
-                                                actions: [
-                                                  ElevatedButton(
-                                                    style: ButtonStyle(
-                                                      backgroundColor: MaterialStateProperty.all<Color>(
-                                                        Colors.red,
-                                                      ),
+                                                  IconButton(
+                                                    icon: Icon(
+                                                      Icons.edit,
+                                                      color: MyTheme.blue3,
                                                     ),
-                                                    child: Text('Oui'),
                                                     onPressed: () async {
-                                                      var toDeleteId = doc.id;
-                                                      final FirebaseFirestore firestore = FirebaseFirestore.instance;
-                                                      final DocumentReference propertyToDelete = firestore.collection('property').doc(toDeleteId);
-                                                      await propertyToDelete.delete();
-                                                      Navigator.of(context).pop();
+                                                      var ville = (doc["city"] as String).split(',')[0];
+                                                      await fetchData(
+                                                          "https://geo.api.gouv.fr/communes?nom=${ville}&fields=departement&limit=5", "searchCity");
+                                                      final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+                                                      DocumentReference propertyTypeRef =
+                                                          _firestore.collection('property_type').doc(doc["property_type_id"].id);
+                                                      DocumentSnapshot snapshot = await propertyTypeRef.get();
+                                                      var data = snapshot.data() as Map<String, dynamic>;
+                                                      String? propertyTypeLabel = data['property_type_label'] as String;
 
-                                                      if ((doc['imagesUrl'] as String) != "")
-                                                        for (var url in (doc['imagesUrl'] as String).split('|')) {
-                                                          final ref = FirebaseStorage.instance.refFromURL(url);
-                                                          await ref.delete();
-                                                        }
+                                                      var newPropertyName = doc["property_name"] as String;
+                                                      var newPropertyDescription = doc["description"] as String;
+                                                      var newAddress = (doc["address"] as String);
+                                                      var newCity = (doc["city"] as String);
+                                                      var newPropertyTypeId = doc["property_type_id"].id;
+                                                      var newNumberRooms = doc["room_number"];
+                                                      var newSurfaceArea = doc["surface_area"];
+                                                      dynamic newImage1 = (doc['imageUrl1'] as String);
+                                                      dynamic newImage2 = (doc['imageUrl2'] as String);
+                                                      dynamic newImage3 = (doc['imageUrl3'] as String);
+                                                      var townSearchText = "";
+                                                      showModalBottomSheet(
+                                                        isScrollControlled: true,
+                                                        context: context,
+                                                        builder: (BuildContext context) {
+                                                          return SingleChildScrollView(
+                                                            child: Padding(
+                                                              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                                                              child: Container(
+                                                                padding: const EdgeInsets.all(20),
+                                                                child: Form(
+                                                                  key: _formKey,
+                                                                  child: Column(
+                                                                    mainAxisSize: MainAxisSize.min,
+                                                                    children: [
+                                                                      Text(
+                                                                        "Editer la propriété ${doc.id}",
+                                                                        style: TextStyle(
+                                                                          fontSize: 20,
+                                                                          fontWeight: FontWeight.bold,
+                                                                        ),
+                                                                      ),
+                                                                      TextFormField(
+                                                                        onChanged: (value) => {newPropertyName = value},
+                                                                        initialValue: doc["property_name"] as String,
+                                                                        decoration: const InputDecoration(
+                                                                          labelText: 'Nom de la propriété',
+                                                                        ),
+                                                                        validator: (value) {
+                                                                          if (value!.isEmpty) {
+                                                                            return 'Le nom ne peux pas être vide';
+                                                                          }
+                                                                          return null;
+                                                                        },
+                                                                      ),
+                                                                      TextFormField(
+                                                                        onChanged: (value) => {newPropertyDescription = value},
+                                                                        initialValue: doc["description"] as String,
+                                                                        minLines: 2,
+                                                                        maxLines: 3,
+                                                                        decoration: const InputDecoration(
+                                                                          labelText: 'Description',
+                                                                        ),
+                                                                        validator: (value) {
+                                                                          if (value!.isEmpty) {
+                                                                            return 'La description ne peux pas être vide';
+                                                                          }
+                                                                          return null;
+                                                                        },
+                                                                      ),
+                                                                      TextFormField(
+                                                                        onChanged: (value) => {newAddress = value},
+                                                                        initialValue: newAddress,
+                                                                        decoration: const InputDecoration(
+                                                                          labelText: 'Adresse',
+                                                                        ),
+                                                                        validator: (value) {
+                                                                          if (value!.isEmpty) {
+                                                                            return 'L\'adresse ne peux pas être vide';
+                                                                          }
+                                                                          return null;
+                                                                        },
+                                                                      ),
+                                                                      Row(
+                                                                        children: [
+                                                                          Expanded(
+                                                                            child: TextField(
+                                                                              decoration: InputDecoration(
+                                                                                hintText: 'Recherchez une ville',
+                                                                              ),
+                                                                              onSubmitted: _handleSubmitted,
+                                                                              onChanged: (value) => {townSearchText = value},
+                                                                            ),
+                                                                          ),
+                                                                          SizedBox(width: 16.0),
+                                                                          ElevatedButton(
+                                                                            onPressed: () {
+                                                                              _handleSubmitted(
+                                                                                  "https://geo.api.gouv.fr/communes?nom=${townSearchText}&fields=departement&limit=5");
+                                                                            },
+                                                                            child: Icon(Icons.search),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                      DropDownTextField(
+                                                                        initialValue: newCity,
+                                                                        clearOption: false,
+                                                                        searchDecoration: InputDecoration(
+                                                                          contentPadding: EdgeInsets.symmetric(
+                                                                            horizontal: 16.0,
+                                                                            vertical: 12.0,
+                                                                          ),
+                                                                          hintText: "Ville",
+                                                                        ),
+                                                                        validator: (value) {
+                                                                          if (value == null || value.isEmpty) {
+                                                                            return "Choisissez une ville";
+                                                                          } else {
+                                                                            return null;
+                                                                          }
+                                                                        },
+                                                                        dropDownItemCount: 6,
+                                                                        dropDownList: _cityOptions,
+                                                                        onChanged: (val) {
+                                                                          newCity = val.value;
+                                                                        },
+                                                                        textFieldDecoration: InputDecoration(
+                                                                          hintText: "Recherchez une ville ci-dessus",
+                                                                        ),
+                                                                      ),
+                                                                      DropDownTextField(
+                                                                        initialValue: propertyTypeLabel,
+                                                                        clearOption: false,
+                                                                        searchDecoration: InputDecoration(
+                                                                          contentPadding: EdgeInsets.symmetric(
+                                                                            horizontal: 16.0,
+                                                                            vertical: 12.0,
+                                                                          ),
+                                                                          hintText: "Type de propriété",
+                                                                        ),
+                                                                        validator: (value) {
+                                                                          if (value == null || value.isEmpty) {
+                                                                            return "Choisissez le type de votre propriété";
+                                                                          } else {
+                                                                            return null;
+                                                                          }
+                                                                        },
+                                                                        dropDownItemCount: 6,
+                                                                        dropDownList: _optionsPropertyType,
+                                                                        onChanged: (val) {
+                                                                          setState(() {
+                                                                            newPropertyTypeId = val.value;
+                                                                          });
+                                                                        },
+                                                                        textFieldDecoration: InputDecoration(
+                                                                          hintText: "Type de propriété",
+                                                                        ),
+                                                                      ),
+                                                                      Row(
+                                                                        children: [
+                                                                          Expanded(
+                                                                            child: TextFormField(
+                                                                              onChanged: (value) => {newNumberRooms = value},
+                                                                              initialValue: doc["room_number"],
+                                                                              keyboardType: TextInputType.number,
+                                                                              decoration: const InputDecoration(
+                                                                                labelText: 'Nombre de chambre',
+                                                                              ),
+                                                                              validator: (value) {
+                                                                                if (value!.isEmpty) {
+                                                                                  return 'Nombre de chambre incorrect';
+                                                                                }
+                                                                                return null;
+                                                                              },
+                                                                            ),
+                                                                          ),
+                                                                          SizedBox(width: 16),
+                                                                          Expanded(
+                                                                            child: TextFormField(
+                                                                              onChanged: (value) => {newSurfaceArea = value},
+                                                                              initialValue: doc["surface_area"],
+                                                                              keyboardType: TextInputType.number,
+                                                                              decoration: const InputDecoration(
+                                                                                labelText: 'Surface en m²',
+                                                                              ),
+                                                                              validator: (value) {
+                                                                                if (value!.isEmpty) {
+                                                                                  return 'Valeur incorrecte';
+                                                                                }
+                                                                                return null;
+                                                                              },
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                      const SizedBox(height: 10),
+                                                                      Row(
+                                                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                                        children: [
+                                                                          (newImage1 == "")
+                                                                              ? PropertyImagePicker(
+                                                                                  onImagesSelected: (image) {
+                                                                                    setState(() {
+                                                                                      newImage1 = image;
+                                                                                    });
+                                                                                  },
+                                                                                )
+                                                                              : PropertyImagePicker(
+                                                                                  onImagesSelected: (image) {
+                                                                                    setState(() {
+                                                                                      newImage1 = image;
+                                                                                    });
+                                                                                  },
+                                                                                  defaultImage: newImage1,
+                                                                                ),
+                                                                          (newImage2 == "")
+                                                                              ? PropertyImagePicker(
+                                                                                  onImagesSelected: (image) {
+                                                                                    setState(() {
+                                                                                      newImage2 = image;
+                                                                                    });
+                                                                                  },
+                                                                                )
+                                                                              : PropertyImagePicker(
+                                                                                  onImagesSelected: (image) {
+                                                                                    setState(() {
+                                                                                      newImage2 = image;
+                                                                                    });
+                                                                                  },
+                                                                                  defaultImage: newImage2,
+                                                                                ),
+                                                                          (newImage3 == "")
+                                                                              ? PropertyImagePicker(
+                                                                                  onImagesSelected: (image) {
+                                                                                    setState(() {
+                                                                                      newImage3 = image;
+                                                                                    });
+                                                                                  },
+                                                                                )
+                                                                              : PropertyImagePicker(
+                                                                                  onImagesSelected: (image) {
+                                                                                    setState(() {
+                                                                                      newImage3 = image;
+                                                                                    });
+                                                                                  },
+                                                                                  defaultImage: newImage3,
+                                                                                )
+                                                                        ],
+                                                                      ),
+                                                                      ElevatedButton(
+                                                                        onPressed: () async {
+                                                                          if (_formKey.currentState!.validate()) {
+                                                                            _formKey.currentState!.save();
+                                                                            // send img if new image, and compare with old
+                                                                            var imgUrl1 = "";
+                                                                            if ((doc['imageUrl1'] as String) != "" && !(newImage1 is String)) {
+                                                                              var baseUrl1 = (doc['imageUrl1'] as String);
+                                                                              final ref = FirebaseStorage.instance.refFromURL(baseUrl1);
+                                                                              await ref.delete();
+                                                                              final compressedImage1 = await compressImage(newImage1);
+                                                                              imgUrl1 = await _uploadImage(compressedImage1!);
+                                                                            } else if ((doc['imageUrl1'] as String) == "" && newImage1 != "") {
+                                                                              final compressedImage1 = await compressImage(newImage1);
+                                                                              imgUrl1 = await _uploadImage(compressedImage1!);
+                                                                            } else {
+                                                                              imgUrl1 = (doc['imageUrl1'] as String);
+                                                                            }
+                                                                            var imgUrl2 = "";
+                                                                            if ((doc['imageUrl2'] as String) != "" && !(newImage2 is String)) {
+                                                                              var baseUrl2 = (doc['imageUrl2'] as String);
+                                                                              final ref = FirebaseStorage.instance.refFromURL(baseUrl2);
+                                                                              await ref.delete();
+                                                                              final compressedImage2 = await compressImage(newImage2);
+                                                                              imgUrl2 = await _uploadImage(compressedImage2!);
+                                                                            } else if ((doc['imageUrl2'] as String) == "" && newImage2 != "") {
+                                                                              final compressedImage2 = await compressImage(newImage2);
+                                                                              imgUrl2 = await _uploadImage(compressedImage2!);
+                                                                            } else {
+                                                                              imgUrl2 = (doc['imageUrl2'] as String);
+                                                                            }
+                                                                            var imgUrl3 = "";
+                                                                            if ((doc['imageUrl3'] as String) != "" && !(newImage3 is String)) {
+                                                                              var baseUrl3 = (doc['imageUrl3'] as String);
+                                                                              final ref = FirebaseStorage.instance.refFromURL(baseUrl3);
+                                                                              await ref.delete();
+                                                                              final compressedImage3 = await compressImage(newImage3);
+                                                                              imgUrl3 = await _uploadImage(compressedImage3!);
+                                                                            } else if ((doc['imageUrl3'] as String) == "" && newImage3 != "") {
+                                                                              final compressedImage3 = await compressImage(newImage3);
+                                                                              imgUrl3 = await _uploadImage(compressedImage3!);
+                                                                            } else {
+                                                                              imgUrl3 = (doc['imageUrl3'] as String);
+                                                                            }
+
+                                                                            // Submit form
+                                                                            final CollectionReference<Map<String, dynamic>> propertyTypes =
+                                                                                FirebaseFirestore.instance.collection('property_type');
+
+                                                                            final DocumentReference<Map<String, dynamic>> propertyTypeRef =
+                                                                                propertyTypes.doc(newPropertyTypeId);
+                                                                            FirebaseFirestore.instance
+                                                                                .collection('property')
+                                                                                .doc(doc.id)
+                                                                                .update({
+                                                                                  'address': newAddress,
+                                                                                  'city': newCity,
+                                                                                  'description': newPropertyDescription,
+                                                                                  'property_name': newPropertyName,
+                                                                                  'room_number': newNumberRooms,
+                                                                                  'surface_area': newSurfaceArea,
+                                                                                  'property_type_id': propertyTypeRef,
+                                                                                  'position': _newHouseLocation,
+                                                                                  'imageUrl1': imgUrl1,
+                                                                                  'imageUrl2': imgUrl2,
+                                                                                  'imageUrl3': imgUrl3,
+                                                                                })
+                                                                                .then((_) => print('Mise à jour réussie'))
+                                                                                .catchError((error) => print('Erreur de mise à jour: $error'));
+                                                                            Navigator.pop(context);
+                                                                          }
+                                                                        },
+                                                                        child: const Text(
+                                                                          'Enregistrer',
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                      );
                                                     },
                                                   ),
-                                                  ElevatedButton(
-                                                    child: Text('Non'),
-                                                    style: ButtonStyle(
-                                                      backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                                                      foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                                                  IconButton(
+                                                    icon: Icon(
+                                                      Icons.delete,
+                                                      color: Colors.red,
                                                     ),
                                                     onPressed: () {
-                                                      Navigator.of(context).pop();
+                                                      showDialog(
+                                                        context: context,
+                                                        builder: (BuildContext context) {
+                                                          return AlertDialog(
+                                                            title: Text('Attention'),
+                                                            content: Text(
+                                                              'Voulez vous supprimer cette propriété ?',
+                                                            ),
+                                                            actions: [
+                                                              ElevatedButton(
+                                                                style: ButtonStyle(
+                                                                  backgroundColor: MaterialStateProperty.all<Color>(
+                                                                    Colors.red,
+                                                                  ),
+                                                                ),
+                                                                child: Text('Oui'),
+                                                                onPressed: () async {
+                                                                  var toDeleteId = doc.id;
+                                                                  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+                                                                  final DocumentReference propertyToDelete =
+                                                                      firestore.collection('property').doc(toDeleteId);
+                                                                  await propertyToDelete.delete();
+                                                                  Navigator.of(context).pop();
+
+                                                                  if ((doc['imageUrl1'] as String) != "") {
+                                                                    final ref = FirebaseStorage.instance.refFromURL((doc['imageUrl1'] as String));
+                                                                    await ref.delete();
+                                                                  }
+                                                                  if ((doc['imageUrl2'] as String) != "") {
+                                                                    final ref = FirebaseStorage.instance.refFromURL((doc['imageUrl2'] as String));
+                                                                    await ref.delete();
+                                                                  }
+                                                                  if ((doc['imageUrl3'] as String) != "") {
+                                                                    final ref = FirebaseStorage.instance.refFromURL((doc['imageUrl3'] as String));
+                                                                    await ref.delete();
+                                                                  }
+                                                                },
+                                                              ),
+                                                              ElevatedButton(
+                                                                child: Text('Non'),
+                                                                style: ButtonStyle(
+                                                                  backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                                                                  foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                                                                ),
+                                                                onPressed: () {
+                                                                  Navigator.of(context).pop();
+                                                                },
+                                                              ),
+                                                            ],
+                                                          );
+                                                        },
+                                                      );
                                                     },
                                                   ),
                                                 ],
-                                              );
-                                            },
-                                          );
-                                        },
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        onTap: () {},
                                       ),
                                     ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            onTap: () {},
+                                  );
+                                },
+                              );
+                            },
                           ),
-                        ],
-                      );
-                    },
-                  );
-                },
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.notifications),
+                ],
               ),
-            ),
+            )
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
-            isScrollControlled: true,
-            context: context,
-            builder: (BuildContext context) {
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            'Ajouter une nouvelle propriété',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          TextFormField(
-                            controller: _propertyNameController,
-                            decoration: const InputDecoration(
-                              labelText: 'Nom de la propriété',
-                            ),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'Le nom ne peux pas être vide';
-                              }
-                              return null;
-                            },
-                          ),
-                          TextFormField(
-                            controller: _descriptionController,
-                            minLines: 2,
-                            maxLines: 3,
-                            decoration: const InputDecoration(
-                              labelText: 'Description',
-                            ),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'La description ne peux pas être vide';
-                              }
-                              return null;
-                            },
-                          ),
-                          TextFormField(
-                            controller: _addressController,
-                            decoration: const InputDecoration(
-                              labelText: 'Adresse',
-                            ),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'L\'adresse ne peux pas être vide';
-                              }
-                              return null;
-                            },
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  controller: _cityTextEditingController,
-                                  decoration: InputDecoration(
-                                    hintText: 'Recherchez une ville',
+      floatingActionButton: _showFloatingActionButton
+          ? FloatingActionButton(
+              onPressed: () {
+                print("===================================================================================");
+                print(_showFloatingActionButton);
+                print("===================================================================================");
+                showModalBottomSheet(
+                  isScrollControlled: true,
+                  context: context,
+                  builder: (BuildContext context) {
+                    return SingleChildScrollView(
+                      child: Padding(
+                        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text(
+                                  'Ajouter une nouvelle propriété',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  onSubmitted: _handleSubmitted,
                                 ),
-                              ),
-                              SizedBox(width: 16.0),
-                              ElevatedButton(
-                                onPressed: () {
-                                  _handleSubmitted(
-                                      "https://geo.api.gouv.fr/communes?nom=${_cityTextEditingController.text}&fields=departement&limit=5");
-                                },
-                                child: Icon(Icons.search),
-                              ),
-                            ],
-                          ),
-                          DropDownTextField(
-                            controller: _cntCity,
-                            clearOption: false,
-                            searchDecoration: InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                                vertical: 12.0,
-                              ),
-                              hintText: "Ville",
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return "Choisissez une ville";
-                              } else {
-                                return null;
-                              }
-                            },
-                            dropDownItemCount: 6,
-                            dropDownList: _cityOptions,
-                            onChanged: (val) {
-                              setState(() {
-                                _selectedCity = val.value;
-                              });
-                            },
-                            textFieldDecoration: InputDecoration(
-                              hintText: "Recherchez une ville ci-dessus",
-                            ),
-                          ),
-                          DropDownTextField(
-                            controller: _cntPropertyType,
-                            clearOption: false,
-                            searchDecoration: InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                                vertical: 12.0,
-                              ),
-                              hintText: "Type de propriété",
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return "Choisissez le type de votre propriété";
-                              } else {
-                                return null;
-                              }
-                            },
-                            dropDownItemCount: 6,
-                            dropDownList: _optionsPropertyType,
-                            onChanged: (val) {
-                              setState(() {
-                                _selectedPropertyTypeUid = val.value;
-                              });
-                            },
-                            textFieldDecoration: InputDecoration(
-                              hintText: "Type de propriété",
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _roomNumberController,
-                                  keyboardType: TextInputType.number,
+                                TextFormField(
+                                  controller: _propertyNameController,
                                   decoration: const InputDecoration(
-                                    labelText: 'Nombre de chambre',
+                                    labelText: 'Nom de la propriété',
                                   ),
                                   validator: (value) {
                                     if (value!.isEmpty) {
-                                      return 'Nombre de chambre incorrect';
+                                      return 'Le nom ne peux pas être vide';
                                     }
                                     return null;
                                   },
                                 ),
-                              ),
-                              SizedBox(width: 16),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _surfaceController,
-                                  keyboardType: TextInputType.number,
+                                TextFormField(
+                                  controller: _descriptionController,
+                                  minLines: 2,
+                                  maxLines: 3,
                                   decoration: const InputDecoration(
-                                    labelText: 'Surface en m²',
+                                    labelText: 'Description',
                                   ),
                                   validator: (value) {
                                     if (value!.isEmpty) {
-                                      return 'Valeur incorrecte';
+                                      return 'La description ne peux pas être vide';
                                     }
                                     return null;
                                   },
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          PropertyImagePicker(
-                              // onImagesSelected: (List<dynamic> images) {
-                              //   List<String> imagePaths = [];
-                              //   images.forEach((image) {
-                              //     imagePaths.add(image.path);
-                              //   });
-                              //   List<File?> files = imagePaths.map((path) => path != null ? File(path) : null).toList();
-                              //   setState(() {
-                              //     _images = files;
-                              //   });
-                              // },
-                              onImagesSelected: (List<dynamic> images, String? errorMessage) {
-                            List<String> imagePaths = [];
-                            images.forEach((image) {
-                              imagePaths.add(image.path);
-                            });
-                            List<File?> files = imagePaths.map((path) => path != null ? File(path) : null).toList();
-                            setState(() {
-                              _images = files;
-                            });
-
-                            if (errorMessage != null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(errorMessage),
+                                TextFormField(
+                                  controller: _addressController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Adresse',
+                                  ),
+                                  validator: (value) {
+                                    if (value!.isEmpty) {
+                                      return 'L\'adresse ne peux pas être vide';
+                                    }
+                                    return null;
+                                  },
                                 ),
-                              );
-                            }
-                          }),
-                          _isLoading
-                              ? Center(child: CircularProgressIndicator())
-                              : ElevatedButton(
-                                  onPressed: () async {
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _cityTextEditingController,
+                                        decoration: InputDecoration(
+                                          hintText: 'Recherchez une ville',
+                                        ),
+                                        onSubmitted: _handleSubmitted,
+                                      ),
+                                    ),
+                                    SizedBox(width: 16.0),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        _handleSubmitted(
+                                            "https://geo.api.gouv.fr/communes?nom=${_cityTextEditingController.text}&fields=departement&limit=5");
+                                      },
+                                      child: Icon(Icons.search),
+                                    ),
+                                  ],
+                                ),
+                                DropDownTextField(
+                                  controller: _cntCity,
+                                  clearOption: false,
+                                  searchDecoration: InputDecoration(
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                      vertical: 12.0,
+                                    ),
+                                    hintText: "Ville",
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Choisissez une ville";
+                                    } else {
+                                      return null;
+                                    }
+                                  },
+                                  dropDownItemCount: 6,
+                                  dropDownList: _cityOptions,
+                                  onChanged: (val) {
                                     setState(() {
-                                      _isLoading = true;
+                                      _selectedCity = val.value;
                                     });
+                                  },
+                                  textFieldDecoration: InputDecoration(
+                                    hintText: "Recherchez une ville ci-dessus",
+                                  ),
+                                ),
+                                DropDownTextField(
+                                  controller: _cntPropertyType,
+                                  clearOption: false,
+                                  searchDecoration: InputDecoration(
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                      vertical: 12.0,
+                                    ),
+                                    hintText: "Type de propriété",
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Choisissez le type de votre propriété";
+                                    } else {
+                                      return null;
+                                    }
+                                  },
+                                  dropDownItemCount: 6,
+                                  dropDownList: _optionsPropertyType,
+                                  onChanged: (val) {
+                                    setState(() {
+                                      _selectedPropertyTypeUid = val.value;
+                                    });
+                                  },
+                                  textFieldDecoration: InputDecoration(
+                                    hintText: "Type de propriété",
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _roomNumberController,
+                                        keyboardType: TextInputType.number,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Nombre de chambre',
+                                        ),
+                                        validator: (value) {
+                                          if (value!.isEmpty) {
+                                            return 'Nombre de chambre incorrect';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                    ),
+                                    SizedBox(width: 16),
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _surfaceController,
+                                        keyboardType: TextInputType.number,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Surface en m²',
+                                        ),
+                                        validator: (value) {
+                                          if (value!.isEmpty) {
+                                            return 'Valeur incorrecte';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    PropertyImagePicker(
+                                      onImagesSelected: (image) {
+                                        setState(() {
+                                          _selectedImage1 = image;
+                                        });
+                                      },
+                                    ),
+                                    PropertyImagePicker(
+                                      onImagesSelected: (image) {
+                                        setState(() {
+                                          _selectedImage2 = image;
+                                        });
+                                      },
+                                    ),
+                                    PropertyImagePicker(
+                                      onImagesSelected: (image) {
+                                        setState(() {
+                                          _selectedImage3 = image;
+                                        });
+                                      },
+                                    )
+                                  ],
+                                ),
+                                ElevatedButton(
+                                  onPressed: () async {
                                     if (_formKey.currentState!.validate()) {
+                                      _formKey.currentState!.save();
                                       String address = _addressController.text + " " + _selectedCity!;
                                       String url =
                                           "https://api-adresse.data.gouv.fr/search/?q=${address.replaceAll(" ", "+").replaceAll(",", "")}&limit=1";
                                       await fetchData(url, "requestType");
-                                      // Rue%20de%20Guyenne%2C%2033600%20Pessac%2C%20France
-                                      // https://api.opencagedata.com/geocode/v1/json?q=15%20rue%20de%20naudet%2C%2033170%20Gradignan%2C%20France&key=03c48dae07364cabb7f121d8c1519492&no_annotations=1&language=fr
-                                      // String url =
-                                      //     "https://api.opencagedata.com/geocode/v1/json?q=" +
-                                      //         Uri.encodeFull(
-                                      //             _addressController.text) +
-                                      //         "&key=03c48dae07364cabb7f121d8c1519492&no_annotations=1&language=fr";
 
                                       // send img
-                                      await Future.wait(_images.map((image) async {
-                                        final compressedImage = await compressImage(image!);
-                                        final imageUrl = await _uploadImage(compressedImage!);
-                                        return imageUrl;
-                                      }));
+                                      var imgUrl1 = "";
+                                      if (_selectedImage1 != null) {
+                                        final compressedImage1 = await compressImage(_selectedImage1);
+                                        imgUrl1 = await _uploadImage(compressedImage1!);
+                                      }
+                                      var imgUrl2 = "";
+                                      if (_selectedImage2 != null) {
+                                        final compressedImage2 = await compressImage(_selectedImage2);
+                                        imgUrl2 = await _uploadImage(compressedImage2!);
+                                      }
+                                      var imgUrl3 = "";
+                                      if (_selectedImage3 != null) {
+                                        final compressedImage3 = await compressImage(_selectedImage3);
+                                        imgUrl3 = await _uploadImage(compressedImage3!);
+                                      }
+
                                       // Submit form
                                       final CollectionReference<Map<String, dynamic>> users = FirebaseFirestore.instance.collection('Users');
                                       final CollectionReference<Map<String, dynamic>> propertyTypes =
@@ -739,14 +849,12 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                         'id_owner': userRef,
                                         'property_type_id': propertyTypeRef,
                                         'position': _newHouseLocation,
-                                        'imagesUrl': _imageUrls,
+                                        'imageUrl1': imgUrl1,
+                                        'imageUrl2': imgUrl2,
+                                        'imageUrl3': imgUrl3,
                                       });
                                       Navigator.pop(context);
                                     }
-                                    setState(() {
-                                      _isLoading = false;
-                                    });
-                                    _formKey.currentState?.reset();
                                     _propertyNameController.clear();
                                     _descriptionController.clear();
                                     _addressController.clear();
@@ -755,24 +863,26 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                     _cityTextEditingController.clear();
                                     _cntCity.clearDropDown();
                                     _cntPropertyType.clearDropDown();
-                                    _images = [];
-                                    _imageUrls = "[]";
+                                    _selectedImage1 = null;
+                                    _selectedImage2 = null;
+                                    _selectedImage3 = null;
                                   },
                                   child: const Text(
                                     'Enregistrer',
                                   ),
                                 ),
-                        ],
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
+                    );
+                  },
+                );
+              },
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 
@@ -803,19 +913,13 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
     return compressedFile;
   }
 
-  Future<void> _uploadImage(File image) async {
+  Future<String> _uploadImage(File image) async {
     final storageRef = FirebaseStorage.instance.ref();
     final imageRef = storageRef.child('images/${DateTime.now().millisecondsSinceEpoch}.jpg');
     final uploadTask = imageRef.putFile(image);
     final snapshot = await uploadTask;
     final downloadUrl = await snapshot.ref.getDownloadURL();
-    setState(() {
-      if (_imageUrls.isNotEmpty) {
-        _imageUrls += '|$downloadUrl';
-      } else {
-        _imageUrls = downloadUrl;
-      }
-    });
+    return downloadUrl;
   }
 
   Future<void> fetchData(String url, String requestType) async {

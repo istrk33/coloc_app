@@ -1,90 +1,67 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-class PropertyImagePicker extends StatefulWidget {
-  final Function(List<dynamic>, String?) onImagesSelected;
-  final List<dynamic>? defaultImages;
 
-  PropertyImagePicker({required this.onImagesSelected, this.defaultImages});
+class PropertyImagePicker extends StatefulWidget {
+  final Function(dynamic) onImagesSelected;
+  final dynamic defaultImage;
+
+  PropertyImagePicker({required this.onImagesSelected, this.defaultImage});
 
   @override
   _PropertyImagePickerState createState() => _PropertyImagePickerState();
 }
 
 class _PropertyImagePickerState extends State<PropertyImagePicker> {
-  List<dynamic> _images = [];
+  dynamic _image;
   final double _imageSize = 100;
-  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _images = widget.defaultImages != null
-        ? widget.defaultImages!
-            .map(
-              (image) => image != null ? (image is String ? image : File(image)) : null,
-            )
-            .toList()
-        : List.generate(3, (index) => null);
+    _image = widget.defaultImage != null ? widget.defaultImage: null;
   }
 
-  Future<void> _getImage(int index) async {
+  Future<void> _getImage() async {
     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       final newImage = File(pickedFile.path);
-      final existingIndex = _images.indexOf(newImage);
 
-      if (existingIndex >= 0) {
-        setState(() {
-          _images[existingIndex] = newImage;
-        });
-      } else {
-        setState(() {
-          _images[index] = newImage;
-        });
-      }
-
-      _handleSelection(_images.where((image) => image != null).map((image) => image!).toList());
-    }
-  }
-
-  _handleSelection(List<dynamic> images) {
-    if (images.length >= 3) {
       setState(() {
-        _errorMessage = null;
+        _image = newImage;
       });
+
+      _handleSelection(_image);
     }
-    widget.onImagesSelected(images, _errorMessage);
   }
 
-  void _removeImage(int index) {
-    setState(() {
-      _images[index] = null;
-    });
-    _getImage(index);
+  _handleSelection(dynamic image) {
+    print(image);
+    widget.onImagesSelected(image);
   }
 
-  Widget _buildImageWidget(int index) {
-    final dynamic image = (index < _images.length) ? _images[index] : null;
-
-    if (image == null) {
+  Widget _buildImageWidget() {
+    print("======================================================================");
+    print(_image);
+    print("======================================================================");
+    if (_image == null) {
       return Icon(
         Icons.camera_alt,
         color: Colors.grey,
       );
     }
 
-    if (image is String) {
+    if (_image is String) {
       return Image.network(
-        image,
+        _image,
         fit: BoxFit.cover,
         key: UniqueKey(),
       );
     }
 
     return Image.file(
-      image,
+      _image,
       fit: BoxFit.cover,
       key: UniqueKey(),
     );
@@ -92,38 +69,20 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GridView.count(
-          crossAxisCount: 3,
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          children: List.generate(
-            3,
-            (index) => GestureDetector(
-              onTap: () => _images.length < index && _images[index] != null ? _removeImage(index) : _getImage(index),
-              child: Container(
-                width: _imageSize,
-                height: _imageSize,
-                decoration: BoxDecoration(
-                  border: Border.all(width: 1, color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: _buildImageWidget(index),
-              ),
-            ),
-          ),
+    print("======================================================================");
+    print("BUILDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
+    print("======================================================================");
+    return GestureDetector(
+      onTap: _getImage,
+      child: Container(
+        width: _imageSize,
+        height: _imageSize,
+        decoration: BoxDecoration(
+          border: Border.all(width: 1, color: Colors.grey),
+          borderRadius: BorderRadius.circular(8),
         ),
-        if (_errorMessage != null)
-          Text(
-            _errorMessage!,
-            style: TextStyle(
-              color: Colors.red,
-              fontSize: 12,
-            ),
-          ),
-      ],
+        child: _buildImageWidget(),
+      ),
     );
   }
 }
