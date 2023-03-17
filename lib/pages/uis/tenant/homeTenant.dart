@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class HomeTenant extends StatelessWidget {
+
   const HomeTenant({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {

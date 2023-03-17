@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../widgets/profile_textfield_widget.dart';
+
 FirebaseAuth auth = FirebaseAuth.instance;
 FirebaseFirestore firestore = FirebaseFirestore.instance;
 final User? currentUser = auth.currentUser;
@@ -252,14 +254,24 @@ class _AnnouncePageState extends State<AnnouncePage>
                                         ],
                                       ),
                                       child: Center(
-                                        child: Text(
-                                          'Coloc',
-                                          textAlign: TextAlign.left,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 18,
-                                            letterSpacing: 0.0,
-                                            color: Colors.white,
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            _showModalBottomSheet(context);
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            fixedSize: const Size(250, 40),
+                                            primary: MyTheme.blue3,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(18.0),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'Candidater',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16.0,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -329,6 +341,78 @@ class _AnnouncePageState extends State<AnnouncePage>
           ],
         ),
       ),
+    );
+  }
+
+  void _showModalBottomSheet(BuildContext context) async {
+      final _descriptionController = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+        top: Radius.circular(30),
+      )),
+      builder: (context) => DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          maxChildSize: 0.9,
+          minChildSize: 0.32,
+          expand: false,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              clipBehavior: Clip.none,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(15, 15, 15, 20),
+                    child: Container(
+                      child: TextFormField(
+                                  controller: _descriptionController,
+                                  maxLines: null,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Description',
+                                  ),
+                                ),
+                    ),
+                  ),
+                  Center(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        fixedSize: const Size(180, 40),
+                        primary: MyTheme.blue3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18.0),
+                        ),
+                      ),
+                      child: Text(
+                        'Canditater',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.0,
+                        ),
+                      ),
+                      onPressed: () async  {
+                        if(_descriptionController.text.isNotEmpty){
+                                      // Submit form
+                                      final CollectionReference<Map<String, dynamic>> users = FirebaseFirestore.instance.collection('Users');
+                                      final DocumentReference<Map<String, dynamic>> userRef = users.doc(auth.currentUser!.uid.toString());
+
+                                      final collectionApplication = FirebaseFirestore.instance.collection('application');
+                                      await collectionApplication.add({
+                                        'id_candidate': userRef,
+                                        'id_announce': widget.announceId,
+                                        'description': _descriptionController.text
+                                      });Navigator.pop(context);}
+                                      
+                      }
+          ),
+                  )
+                ],
+              ),
+            );
+          }),
     );
   }
 
