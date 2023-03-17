@@ -42,9 +42,6 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
   }
 
   Widget _buildImageWidget() {
-    print("======================================================================");
-    print(_image);
-    print("======================================================================");
     if (_image == null) {
       return Icon(
         Icons.camera_alt,
@@ -69,9 +66,6 @@ class _PropertyImagePickerState extends State<PropertyImagePicker> {
 
   @override
   Widget build(BuildContext context) {
-    print("======================================================================");
-    print("BUILDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
-    print("======================================================================");
     return GestureDetector(
       onTap: _getImage,
       child: Container(
