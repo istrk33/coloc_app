@@ -31,6 +31,7 @@ class _AnnouncePageState extends State<AnnouncePage>
   double opacity2 = 0.0;
   double opacity3 = 0.0;
   String imgUrl = "";
+  String title = "";
   int rentValue = 0;
   int roommatesNumber = 0;
   int depositAmount = 0;
@@ -69,12 +70,22 @@ class _AnnouncePageState extends State<AnnouncePage>
         .collection('announce')
         .doc(widget.announceId)
         .get();
-    imgUrl = announceData.data()?['img_url'];
-    print(imgUrl);
+
+    final propertyId = announceData.data()?['property_id'];
+
+    final propertyData = await FirebaseFirestore.instance
+      .collection('property')
+      .doc(propertyId.id)
+      .get();
+        
+    print('id annonce: '+widget.announceId);
+    print('id property: '+propertyId.id);
+    imgUrl = propertyData.data()?['imageUrl1'];
+    title = propertyData.data()?['property_name'];
     rentValue = announceData.data()?['price'];
     roommatesNumber = announceData.data()?['max_roomates'];
     depositAmount = announceData.data()?['deposit_amount'];
-    description = announceData.data()?['description'];
+   description = propertyData.data()?['description'];
   }
 
   @override
@@ -138,7 +149,7 @@ class _AnnouncePageState extends State<AnnouncePage>
                             padding: const EdgeInsets.only(
                                 top: 32.0, left: 18, right: 16),
                             child: Text(
-                              widget.announceTitle,
+                              title,
                               textAlign: TextAlign.left,
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
