@@ -27,7 +27,7 @@ Future<void> main() async {
   });
 }
 
-class LoginTabBar extends StatelessWidget {
+ class LoginTabBar extends StatelessWidget {
   const LoginTabBar({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
