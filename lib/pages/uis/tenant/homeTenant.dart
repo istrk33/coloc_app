@@ -89,7 +89,7 @@ class HomeTenant extends StatelessWidget {
                             decoration: BoxDecoration(
                               image: DecorationImage(
                                 image: NetworkImage(imgUrl),
-                                fit: BoxFit.fill,
+                                fit: BoxFit.cover,
                               ),
                             ),
                           ),
