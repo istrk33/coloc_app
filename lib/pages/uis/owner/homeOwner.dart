@@ -234,7 +234,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                                       Icons.groups_sharp,
                                                                                     )),
                                                                                 validator: (value) {
-                                                                                  if (value!.isEmpty) {
+                                                                                  if (value!.isEmpty || int.parse(value) <= 1) {
                                                                                     return 'Valeur incorrecte';
                                                                                   }
                                                                                   return null;
@@ -740,9 +740,6 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                             ],
                                           ),
                                         ),
-                                        onTap: () {
-                                          print("caca");
-                                        },
                                       ),
                                     ],
                                   );
@@ -948,9 +945,10 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                                                 Icons.groups_sharp,
                                                                                               )),
                                                                                           validator: (value) {
-                                                                                            if (value!.isEmpty &&
+                                                                                            if (value!.isEmpty ||
                                                                                                 int.parse(value) <
-                                                                                                    announceData[index]['roomate_number']) {
+                                                                                                    announceData[index]['roomate_number'] ||
+                                                                                                int.parse(value) <= 1) {
                                                                                               return 'Valeur incorrecte';
                                                                                             }
                                                                                             return null;
@@ -1095,7 +1093,9 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                       ],
                                                     ),
                                                   ),
-                                                  onTap: () {},
+                                                  onTap: () {
+                                                    // afficher liste de colocataire
+                                                  },
                                                   trailing: Column(
                                                     children: [
                                                       Icon(Icons.groups),
