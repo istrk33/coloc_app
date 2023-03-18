@@ -36,6 +36,7 @@ class _AnnouncePageState extends State<AnnouncePage>
   String roommatesNumber = "";
   String depositAmount = "";
   String description = "";
+  String announceIdFromFunction = "";
 
   @override
   void initState() {
@@ -83,6 +84,8 @@ class _AnnouncePageState extends State<AnnouncePage>
         .get();
 
     final announceDoc = announceQuerySnapshot.docs.first;
+    announceIdFromFunction = announceDoc.id;
+
     imgUrl = propertyDoc.data()['imageUrl1'];
     title = propertyDoc.data()['property_name'];
     rentValue = announceDoc.data()['price'];
@@ -252,45 +255,29 @@ class _AnnouncePageState extends State<AnnouncePage>
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: <Widget>[
                                   Expanded(
-                                    child: Container(
-                                      height: 48,
-                                      decoration: BoxDecoration(
-                                        color: MyTheme.blue3,
-                                        borderRadius: const BorderRadius.all(
-                                          Radius.circular(16.0),
-                                        ),
-                                        boxShadow: <BoxShadow>[
-                                          BoxShadow(
-                                              color: MyTheme.blue3
-                                                  .withOpacity(0.5),
-                                              offset: const Offset(1.1, 1.1),
-                                              blurRadius: 10.0),
-                                        ],
-                                      ),
-                                      child: Center(
-                                        child: ElevatedButton(
-                                          onPressed: () {
-                                            _showModalBottomSheet(context);
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            fixedSize: const Size(250, 40),
-                                            primary: MyTheme.blue3,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(18.0),
-                                            ),
+                                    child: Center(
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          _showModalBottomSheet(context);
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          fixedSize: const Size(250, 40),
+                                          primary: MyTheme.blue3,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(18.0),
                                           ),
-                                          child: Text(
-                                            'Candidater',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 16.0,
-                                            ),
+                                        ),
+                                        child: Text(
+                                          'Candidater',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16.0,
                                           ),
                                         ),
                                       ),
                                     ),
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
@@ -368,7 +355,7 @@ class _AnnouncePageState extends State<AnnouncePage>
         top: Radius.circular(30),
       )),
       builder: (context) => DraggableScrollableSheet(
-          initialChildSize: 0.6,
+          initialChildSize: 0.5,
           maxChildSize: 0.9,
           minChildSize: 0.32,
           expand: false,
@@ -385,9 +372,8 @@ class _AnnouncePageState extends State<AnnouncePage>
                       child: TextFormField(
                         controller: _descriptionController,
                         maxLines: null,
-                        decoration: const InputDecoration(
-                          labelText: 'Description',
-                        ),
+                        decoration:
+                            const InputDecoration(labelText: 'Description'),
                       ),
                     ),
                   ),
@@ -422,10 +408,31 @@ class _AnnouncePageState extends State<AnnouncePage>
                                 .collection('application');
                             await collectionApplication.add({
                               'id_candidate': userRef,
-                              'id_announce': widget.announceId,
+                              'id_announce': announceIdFromFunction,
                               'description': _descriptionController.text
                             });
                             Navigator.pop(context);
+                          } else {
+                            if (_descriptionController.text.isEmpty) {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text('Impossible de candidater'),
+                                    content: Text(
+                                        'La description ne peut pas être vide, présentez vous brievement.'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        child: Text('Fermer'),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            }
                           }
                         }),
                   )
