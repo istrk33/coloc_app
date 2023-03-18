@@ -117,8 +117,8 @@ class HomeTenant extends StatelessWidget {
                         margin: const EdgeInsets.fromLTRB(0, 120, 0, 0),
                         alignment: Alignment.center,
                         child: Text(
-                          property['propertyDescription'].length > 200
-                              ? '${'-' + property['propertyDescription'].substring(0, 200)}...'
+                          property['propertyDescription'].length > 150
+                              ? '${'-' + property['propertyDescription'].substring(0, 150)}...'
                               : property['propertyDescription'],
                           style: const TextStyle(
                             color: Colors.black,
