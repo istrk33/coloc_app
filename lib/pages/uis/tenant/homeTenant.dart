@@ -27,7 +27,8 @@ class HomeTenant extends StatelessWidget {
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-          //print(snapshot.data![0]);
+          snapshot.data!
+              .sort((a, b) => b['announceDate'].compareTo(a['announceDate']));
           return ListView.builder(
             itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
