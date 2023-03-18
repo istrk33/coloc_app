@@ -154,7 +154,14 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                   return Column(
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
+                                      SizedBox(
+                                        height: 10,
+                                      ),
                                       ListTile(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          side: BorderSide(color: Colors.grey),
+                                        ),
                                         contentPadding: EdgeInsets.all(0),
                                         leading: Image.network(
                                           (doc['imageUrl1'] as String),
@@ -270,7 +277,8 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                                       'max_roomates': _maxRoomatesController.text,
                                                                                       'property_id': property,
                                                                                       'is_active': true,
-                                                                                      'price': _priceController.text
+                                                                                      'price': _priceController.text,
+                                                                                      'roomate_number': 0
                                                                                     });
                                                                                     Navigator.pop(context);
                                                                                   }
@@ -799,79 +807,309 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                         builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                                           if (snapshot.connectionState == ConnectionState.done) {
                                             final correspondingProperty = snapshot.data!;
-                                            // return ListTile(
-                                            //   title: Text(correspondingProperty['property_name']),
-                                            //   subtitle: Text(correspondingProperty['description']),
-                                            //   // trailing: Text(document['des']),
-                                            // );
-                                            return Dismissible(
-                                                key: Key('key'),
-                                                direction: DismissDirection.startToEnd,
-                                                onDismissed: (direction) {
-                                                  // Fonction à exécuter lorsque l'élément est supprimé
-
-                                                },
-                                                 background: Container(
-        color: Colors.red,
-        child: Icon(Icons.delete, color: Colors.white),
-        alignment: Alignment.centerLeft,
-        padding: EdgeInsets.only(left: 16),
-      ),
-                                                child: ListTile(
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius: BorderRadius.circular(10),
-                                                      side: BorderSide(color: Colors.grey),
+                                            return Column(
+                                              children: [
+                                                SizedBox(
+                                                  height: 10,
+                                                ),
+                                                ListTile(
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    side: BorderSide(color: Colors.grey),
+                                                  ),
+                                                  contentPadding: EdgeInsets.all(0),
+                                                  leading: Image.network(
+                                                    (correspondingProperty['imageUrl1'] as String),
+                                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                      return Image.asset('assets/images/placeholder.jpg');
+                                                    },
+                                                    width: 50,
+                                                    height: 50,
+                                                  ),
+                                                  title: Text.rich(
+                                                    TextSpan(
+                                                      children: [
+                                                        WidgetSpan(
+                                                          alignment: PlaceholderAlignment.middle,
+                                                          baseline: TextBaseline.alphabetic,
+                                                          child: Icon(Icons.house),
+                                                        ),
+                                                        TextSpan(
+                                                          text: correspondingProperty['property_name'],
+                                                        ),
+                                                      ],
                                                     ),
-                                                    leading: Image.network(
-                                                      correspondingProperty['imageUrl1'],
-                                                      width: 50,
-                                                      height: 50,
-                                                      fit: BoxFit.cover,
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                  subtitle: Container(
+                                                    child: Column(
+                                                      children: [
+                                                        Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                          children: [
+                                                            Column(
+                                                              children: [
+                                                                Icon(Icons.credit_card),
+                                                                Text("${announceData[index]['price']}€"),
+                                                              ],
+                                                            ),
+                                                            Column(
+                                                              children: [
+                                                                Icon(Icons.credit_score_sharp),
+                                                                Text("${announceData[index]['deposit_amount']}€"),
+                                                              ],
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                          children: [
+                                                            Switch(
+                                                              value: announceData[index]['is_active'],
+                                                              onChanged: (value) {
+                                                                setState(
+                                                                  () {
+                                                                    FirebaseFirestore.instance
+                                                                        .collection('announce')
+                                                                        .doc(announceData[index].id)
+                                                                        .update({
+                                                                          'is_active': !announceData[index]['is_active'],
+                                                                        })
+                                                                        .then((_) => print('Mise à jour réussie'))
+                                                                        .catchError((error) => print('Erreur de mise à jour: $error'));
+                                                                  },
+                                                                );
+                                                              },
+                                                              activeColor: MyTheme.blue1,
+                                                              inactiveThumbColor: Colors.grey,
+                                                              inactiveTrackColor: Colors.grey[300],
+                                                              activeTrackColor: MyTheme.blue4,
+                                                            ),
+                                                            IconButton(
+                                                              icon: Icon(
+                                                                Icons.edit,
+                                                                color: MyTheme.blue3,
+                                                              ),
+                                                              onPressed: () async {
+                                                                // update
+                                                                var newMaxRoomates = announceData[index]['max_roomates'];
+                                                                var newDepositAmount = announceData[index]['deposit_amount'];
+                                                                var newPrice = announceData[index]['price'];
+                                                                showModalBottomSheet(
+                                                                  isScrollControlled: true,
+                                                                  context: context,
+                                                                  builder: (BuildContext context) {
+                                                                    return StatefulBuilder(
+                                                                      builder: (BuildContext context, StateSetter setState) {
+                                                                        return Stack(
+                                                                          children: [
+                                                                            SingleChildScrollView(
+                                                                              child: Padding(
+                                                                                padding:
+                                                                                    EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                                                                                child: Container(
+                                                                                  padding: const EdgeInsets.all(20),
+                                                                                  child: Form(
+                                                                                    key: _formKey,
+                                                                                    child: Column(
+                                                                                      mainAxisSize: MainAxisSize.min,
+                                                                                      children: [
+                                                                                        Text(
+                                                                                          "Modifier l'annonce de ${correspondingProperty['property_name']}",
+                                                                                          style: TextStyle(
+                                                                                            fontSize: 20,
+                                                                                            fontWeight: FontWeight.bold,
+                                                                                          ),
+                                                                                        ),
+                                                                                        TextFormField(
+                                                                                          initialValue: newDepositAmount,
+                                                                                          keyboardType: TextInputType.number,
+                                                                                          decoration: const InputDecoration(
+                                                                                              labelText: 'Caution',
+                                                                                              suffixIcon: Icon(
+                                                                                                Icons.euro_sharp,
+                                                                                              )),
+                                                                                          validator: (value) {
+                                                                                            if (value!.isEmpty) {
+                                                                                              return 'Montant incorrect';
+                                                                                            }
+                                                                                            return null;
+                                                                                          },
+                                                                                          onChanged: (value) {
+                                                                                            newDepositAmount = value;
+                                                                                          },
+                                                                                        ),
+                                                                                        TextFormField(
+                                                                                          initialValue: newMaxRoomates,
+                                                                                          keyboardType: TextInputType.number,
+                                                                                          decoration: const InputDecoration(
+                                                                                              labelText: 'Nombre de colocataire',
+                                                                                              suffixIcon: Icon(
+                                                                                                Icons.groups_sharp,
+                                                                                              )),
+                                                                                          validator: (value) {
+                                                                                            if (value!.isEmpty &&
+                                                                                                int.parse(value) <
+                                                                                                    announceData[index]['roomate_number']) {
+                                                                                              return 'Valeur incorrecte';
+                                                                                            }
+                                                                                            return null;
+                                                                                          },
+                                                                                          onChanged: (value) {
+                                                                                            newMaxRoomates = value;
+                                                                                          },
+                                                                                        ),
+                                                                                        TextFormField(
+                                                                                          initialValue: newPrice,
+                                                                                          keyboardType: TextInputType.number,
+                                                                                          decoration: const InputDecoration(
+                                                                                            suffixIcon: Icon(
+                                                                                              Icons.euro_sharp,
+                                                                                            ),
+                                                                                            labelText: 'Loyer',
+                                                                                          ),
+                                                                                          validator: (value) {
+                                                                                            if (value!.isEmpty) {
+                                                                                              return 'Montant incorrect';
+                                                                                            }
+                                                                                            return null;
+                                                                                          },
+                                                                                          onChanged: (value) {
+                                                                                            newPrice = value;
+                                                                                          },
+                                                                                        ),
+                                                                                        ElevatedButton(
+                                                                                          onPressed: () async {
+                                                                                            setState(() {
+                                                                                              _isLoading = true;
+                                                                                            });
+                                                                                            if (_formKey.currentState!.validate()) {
+                                                                                              _formKey.currentState!.save();
+                                                                                              FirebaseFirestore.instance
+                                                                                                  .collection('announce')
+                                                                                                  .doc(announceData[index].id)
+                                                                                                  .update({
+                                                                                                    'max_roomates': newMaxRoomates,
+                                                                                                    'price': newPrice,
+                                                                                                    'deposit_amount': newDepositAmount,
+                                                                                                  })
+                                                                                                  .then((_) => print('Mise à jour réussie'))
+                                                                                                  .catchError((error) =>
+                                                                                                      print('Erreur de mise à jour: $error'));
+                                                                                              Navigator.pop(context);
+                                                                                            }
+                                                                                          },
+                                                                                          child: const Text(
+                                                                                            'Enregistrer',
+                                                                                          ),
+                                                                                        ),
+                                                                                      ],
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        );
+                                                                      },
+                                                                    );
+                                                                  },
+                                                                );
+                                                              },
+                                                            ),
+                                                            IconButton(
+                                                              icon: Icon(
+                                                                Icons.delete,
+                                                                color: Colors.red,
+                                                              ),
+                                                              onPressed: () {
+                                                                if (announceData[index]['roomate_number'] > 0) {
+                                                                  showDialog(
+                                                                    context: context,
+                                                                    builder: (BuildContext context) {
+                                                                      return AlertDialog(
+                                                                        title: Text('Attention'),
+                                                                        content: Text(
+                                                                          'Voulez ne pouvez pas supprimer cette annonce !',
+                                                                        ),
+                                                                        actions: [
+                                                                          ElevatedButton(
+                                                                            child: Text('Compris'),
+                                                                            style: ButtonStyle(
+                                                                              backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                                                                              foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                                                                            ),
+                                                                            onPressed: () {
+                                                                              Navigator.of(context).pop();
+                                                                            },
+                                                                          ),
+                                                                        ],
+                                                                      );
+                                                                    },
+                                                                  );
+                                                                } else {
+                                                                  showDialog(
+                                                                    context: context,
+                                                                    builder: (BuildContext context) {
+                                                                      return AlertDialog(
+                                                                        title: Text('Attention'),
+                                                                        content: Text(
+                                                                          'Voulez vous supprimer cette annonce ?',
+                                                                        ),
+                                                                        actions: [
+                                                                          ElevatedButton(
+                                                                            style: ButtonStyle(
+                                                                              backgroundColor: MaterialStateProperty.all<Color>(
+                                                                                Colors.red,
+                                                                              ),
+                                                                            ),
+                                                                            child: Text('Oui'),
+                                                                            onPressed: () async {
+                                                                              var toDeleteId = announceData[index].id;
+                                                                              final FirebaseFirestore firestore = FirebaseFirestore.instance;
+                                                                              final DocumentReference propertyToDelete =
+                                                                                  firestore.collection('announce').doc(toDeleteId);
+                                                                              await propertyToDelete.delete();
+                                                                              Navigator.of(context).pop();
+                                                                            },
+                                                                          ),
+                                                                          ElevatedButton(
+                                                                            child: Text('Non'),
+                                                                            style: ButtonStyle(
+                                                                              backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                                                                              foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                                                                            ),
+                                                                            onPressed: () {
+                                                                              Navigator.of(context).pop();
+                                                                            },
+                                                                          ),
+                                                                        ],
+                                                                      );
+                                                                    },
+                                                                  );
+                                                                }
+                                                              },
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
                                                     ),
-                                                    title: Text(
-                                                      'Titre de la propriété',
-                                                      style: TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 16,
+                                                  ),
+                                                  onTap: () {},
+                                                  trailing: Column(
+                                                    children: [
+                                                      Icon(Icons.groups),
+                                                      Container(
+                                                        padding: EdgeInsets.all(5),
+                                                        child: Text(
+                                                          "${announceData[index]['roomate_number']}/${announceData[index]['max_roomates']}",
+                                                        ),
                                                       ),
-                                                    ),
-                                                    subtitle: Text(
-                                                      'Adresse de la propriété',
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                      ),
-                                                    ),
-                                                    trailing: IconButton(
-                                                      icon: Icon(Icons.chevron_right_rounded),
-                                                      onPressed: () {},
-                                                    )
-
-                                                    // Row(
-                                                    //   mainAxisAlignment: MainAxisAlignment.center,
-                                                    //   children: [
-                                                    //     Column(
-                                                    //       children: [
-                                                    //         ElevatedButton(
-                                                    //           onPressed: () {},
-                                                    //           child: Icon(Icons.abc),
-                                                    //         ),
-                                                    //         SizedBox(width: 8),
-                                                    //         ElevatedButton(
-                                                    //           onPressed: () {},
-                                                    //           // child: Text('Bouton 2'),
-                                                    //           child: Icon(Icons.abc),
-                                                    //         ),
-                                                    //       ],
-                                                    //     ),
-                                                    //     SizedBox(height: 8),
-                                                    //     ElevatedButton(
-                                                    //       onPressed: () {},
-                                                    //       // child: Text('Bouton 3'),
-                                                    //           child: Icon(Icons.abc),
-                                                    //     ),
-                                                    //   ],
-                                                    // ),
-                                                    ));
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            );
                                           } else {
                                             return SizedBox.shrink();
                                           }
@@ -879,133 +1117,10 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                       );
                                     },
                                   );
-                                  // return ListView.builder(
-                                  //   itemCount: announceData.length,
-                                  //   itemBuilder: (BuildContext context, int index) async{
-                                  //     final document = announceData[index];
-                                  //     final correspondingProperty = await document['property_id'].get();
-                                  //     print(correspondingProperty);
-                                  //     print(document);
-                                  //     return ListTile(
-                                  //       title: Text(document['price']),
-                                  //       subtitle: Text(document['deposit_amount']),
-                                  //     );
-                                  //   },
-                                  // );
                                 },
                               );
                             },
                           ),
-
-                          //   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                          //     if (snapshot.hasError) {
-                          //       return Center(child: Text('Une erreur est survenue.'));
-                          //     }
-
-                          //     if (!snapshot.hasData) {
-                          //       return Center(child: CircularProgressIndicator());
-                          //     }
-
-                          //     return ListView.builder(
-                          //       shrinkWrap: true,
-                          //       itemCount: snapshot.data!.docs.length,
-                          //       itemBuilder: (BuildContext context, int index) {
-                          //         DocumentSnapshot doc = snapshot.data!.docs[index];
-
-                          //         return Column(
-                          //           crossAxisAlignment: CrossAxisAlignment.stretch,
-                          //           children: [
-                          //             ListTile(
-                          //               contentPadding: EdgeInsets.all(0),
-                          //               leading: Image.network(
-                          //                 (doc['imageUrl1'] as String),
-                          //                 errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                          //                   return Image.asset('assets/images/placeholder.jpg');
-                          //                 },
-                          //                 width: 50,
-                          //                 height: 50,
-                          //               ),
-                          //               title: Text(doc['property_name']),
-                          //               subtitle: Container(
-                          //                 child: Column(
-                          //                   children: [
-                          //                     Text(
-                          //                       doc['description'].length > 125 ? '${doc['description'].substring(0, 125)}...' : doc['description'],
-                          //                     ),
-                          //                     Row(
-                          //                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          //                       children: [
-                          //                         IconButton(
-                          //                           icon: Icon(Icons.remove),
-                          //                           color: Colors.green,
-                          //                           onPressed: () async {
-
-                          //                           },
-                          //                         ),
-                          //                         IconButton(
-                          //                           icon: Icon(
-                          //                             Icons.edit,
-                          //                             color: MyTheme.blue3,
-                          //                           ),
-                          //                           onPressed: () async {
-
-                          //                           },
-                          //                         ),
-                          //                         IconButton(
-                          //                           icon: Icon(
-                          //                             Icons.delete,
-                          //                             color: Colors.red,
-                          //                           ),
-                          //                           onPressed: () {
-                          //                             showDialog(
-                          //                               context: context,
-                          //                               builder: (BuildContext context) {
-                          //                                 return AlertDialog(
-                          //                                   title: Text('Attention'),
-                          //                                   content: Text(
-                          //                                     'Voulez vous supprimer cette annonce ?',
-                          //                                   ),
-                          //                                   actions: [
-                          //                                     ElevatedButton(
-                          //                                       style: ButtonStyle(
-                          //                                         backgroundColor: MaterialStateProperty.all<Color>(
-                          //                                           Colors.red,
-                          //                                         ),
-                          //                                       ),
-                          //                                       child: Text('Oui'),
-                          //                                       onPressed: () async {
-
-                          //                                       },
-                          //                                     ),
-                          //                                     ElevatedButton(
-                          //                                       child: Text('Non'),
-                          //                                       style: ButtonStyle(
-                          //                                         backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                          //                                         foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
-                          //                                       ),
-                          //                                       onPressed: () {
-                          //                                         Navigator.of(context).pop();
-                          //                                       },
-                          //                                     ),
-                          //                                   ],
-                          //                                 );
-                          //                               },
-                          //                             );
-                          //                           },
-                          //                         ),
-                          //                       ],
-                          //                     ),
-                          //                   ],
-                          //                 ),
-                          //               ),
-                          //               onTap: () {},
-                          //             ),
-                          //           ],
-                          //         );
-                          //       },
-                          //     );
-                          //   },
-                          // ),
                         ),
                       ],
                     ),
