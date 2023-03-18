@@ -570,6 +570,10 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                                   });
                                                                                   if (_formKey.currentState!.validate()) {
                                                                                     _formKey.currentState!.save();
+                                                                                    String address = newAddress+ " " +newCity;
+                                                                                    String url =
+                                                                                        "https://api-adresse.data.gouv.fr/search/?q=${address.replaceAll(" ", "+").replaceAll(",", "")}&limit=1";
+                                                                                    await fetchData(url, "requestType");
                                                                                     // send img if new image, and compare with old
                                                                                     var imgUrl1 = "";
                                                                                     if ((doc['imageUrl1'] as String) != "" &&
