@@ -10,6 +10,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:developer';
 
 class HomeOwner extends StatefulWidget {
   const HomeOwner({Key? key}) : super(key: key);
@@ -168,7 +169,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                           child: Column(
                                             children: [
                                               Text(
-                                                doc['description'],
+                                                doc['description'].length > 125 ? '${doc['description'].substring(0, 125)}...' : doc['description'],
                                               ),
                                               Row(
                                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -268,35 +269,9 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                                       'deposit_amount': _depositAmountController.text,
                                                                                       'max_roomates': _maxRoomatesController.text,
                                                                                       'property_id': property,
-                                                                                      'is_active':true,
-                                                                                      'price':_priceController.text
+                                                                                      'is_active': true,
+                                                                                      'price': _priceController.text
                                                                                     });
-
-                                                                                    // Submit form
-                                                                                    // final CollectionReference<Map<String, dynamic>> propertyTypes =
-                                                                                    //     FirebaseFirestore.instance.collection('property_type');
-
-                                                                                    // final DocumentReference<Map<String, dynamic>> propertyTypeRef =
-                                                                                    //     propertyTypes.doc(newPropertyTypeId);
-                                                                                    // FirebaseFirestore.instance
-                                                                                    //     .collection('property')
-                                                                                    //     .doc(doc.id)
-                                                                                    //     .update({
-                                                                                    //       'address': newAddress,
-                                                                                    //       'city': newCity,
-                                                                                    //       'description': newPropertyDescription,
-                                                                                    //       'property_name': newPropertyName,
-                                                                                    //       'room_number': newNumberRooms,
-                                                                                    //       'surface_area': newSurfaceArea,
-                                                                                    //       'property_type_id': propertyTypeRef,
-                                                                                    //       'position': _newHouseLocation,
-                                                                                    //       'imageUrl1': imgUrl1,
-                                                                                    //       'imageUrl2': imgUrl2,
-                                                                                    //       'imageUrl3': imgUrl3,
-                                                                                    //     })
-                                                                                    //     .then((_) => print('Mise à jour réussie'))
-                                                                                    //     .catchError(
-                                                                                    //         (error) => print('Erreur de mise à jour: $error'));
                                                                                     Navigator.pop(context);
                                                                                   }
                                                                                 },
@@ -757,7 +732,11 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                             ],
                                           ),
                                         ),
-                                        onTap: () {},
+                                        onTap: () {
+                                          print("caca")
+                                          
+                                          ;
+                                        },
                                       ),
                                     ],
                                   );
@@ -769,7 +748,181 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                       ],
                     ),
                   ),
-                  Icon(Icons.notifications),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.all(15.0),
+                          child: CupertinoSearchTextField(
+                            placeholder: 'Rechercher',
+                          ),
+                        ),
+                        Expanded(
+                          child: StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance.collection('property').where('id_owner', isEqualTo: auth.currentUser!.uid).snapshots(),
+                            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> propertiesSnapshot) {
+                              if (propertiesSnapshot.hasError) {
+                                return Text('Une erreur est survenue : ${propertiesSnapshot.error}');
+                              }
+
+                              if (!propertiesSnapshot.hasData) {
+                                return Text('Aucune donnée trouvée !');
+                              }
+
+                              // récupère les données du snapshot
+                              final data = propertiesSnapshot.data!.docs;
+                              log('your message here');
+                              log("=========================================================================================================");
+                              log(data.toString());
+                              final propertyIds = data.map((doc) => doc.id).toList();
+                              log(propertyIds.toString());
+                              log("=========================================================================================================");
+
+                              return StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance.collection('announce').where('property_id', whereIn: propertyIds).snapshots(),
+                                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> announceSnapshot) {
+                                  if (announceSnapshot.hasError) {
+                                    return Text('Une erreur est survenue : ${announceSnapshot.error}');
+                                  }
+
+                                  if (!announceSnapshot.hasData) { 
+                                    return Text('Aucune annonce trouvée !');
+                                  }
+
+                                  // récupère les données du snapshot d'annonce
+                                  final announceData = announceSnapshot.data!.docs;
+
+                                  return ListView.builder(
+                                    itemCount: announceData.length,
+                                    itemBuilder: (BuildContext context, int index) {
+                                      final document = announceData[index];
+                                      // retourne un widget pour chaque document dans le snapshot d'annonce
+                                      return ListTile(
+                                        title: Text(document['price']),
+                                        subtitle: Text(document['deposit']),
+                                      );
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                          ),
+
+                          //   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                          //     if (snapshot.hasError) {
+                          //       return Center(child: Text('Une erreur est survenue.'));
+                          //     }
+
+                          //     if (!snapshot.hasData) {
+                          //       return Center(child: CircularProgressIndicator());
+                          //     }
+
+                          //     return ListView.builder(
+                          //       shrinkWrap: true,
+                          //       itemCount: snapshot.data!.docs.length,
+                          //       itemBuilder: (BuildContext context, int index) {
+                          //         DocumentSnapshot doc = snapshot.data!.docs[index];
+
+                          //         return Column(
+                          //           crossAxisAlignment: CrossAxisAlignment.stretch,
+                          //           children: [
+                          //             ListTile(
+                          //               contentPadding: EdgeInsets.all(0),
+                          //               leading: Image.network(
+                          //                 (doc['imageUrl1'] as String),
+                          //                 errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                          //                   return Image.asset('assets/images/placeholder.jpg');
+                          //                 },
+                          //                 width: 50,
+                          //                 height: 50,
+                          //               ),
+                          //               title: Text(doc['property_name']),
+                          //               subtitle: Container(
+                          //                 child: Column(
+                          //                   children: [
+                          //                     Text(
+                          //                       doc['description'].length > 125 ? '${doc['description'].substring(0, 125)}...' : doc['description'],
+                          //                     ),
+                          //                     Row(
+                          //                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          //                       children: [
+                          //                         IconButton(
+                          //                           icon: Icon(Icons.remove),
+                          //                           color: Colors.green,
+                          //                           onPressed: () async {
+
+                          //                           },
+                          //                         ),
+                          //                         IconButton(
+                          //                           icon: Icon(
+                          //                             Icons.edit,
+                          //                             color: MyTheme.blue3,
+                          //                           ),
+                          //                           onPressed: () async {
+
+                          //                           },
+                          //                         ),
+                          //                         IconButton(
+                          //                           icon: Icon(
+                          //                             Icons.delete,
+                          //                             color: Colors.red,
+                          //                           ),
+                          //                           onPressed: () {
+                          //                             showDialog(
+                          //                               context: context,
+                          //                               builder: (BuildContext context) {
+                          //                                 return AlertDialog(
+                          //                                   title: Text('Attention'),
+                          //                                   content: Text(
+                          //                                     'Voulez vous supprimer cette annonce ?',
+                          //                                   ),
+                          //                                   actions: [
+                          //                                     ElevatedButton(
+                          //                                       style: ButtonStyle(
+                          //                                         backgroundColor: MaterialStateProperty.all<Color>(
+                          //                                           Colors.red,
+                          //                                         ),
+                          //                                       ),
+                          //                                       child: Text('Oui'),
+                          //                                       onPressed: () async {
+
+                          //                                       },
+                          //                                     ),
+                          //                                     ElevatedButton(
+                          //                                       child: Text('Non'),
+                          //                                       style: ButtonStyle(
+                          //                                         backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                          //                                         foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                          //                                       ),
+                          //                                       onPressed: () {
+                          //                                         Navigator.of(context).pop();
+                          //                                       },
+                          //                                     ),
+                          //                                   ],
+                          //                                 );
+                          //                               },
+                          //                             );
+                          //                           },
+                          //                         ),
+                          //                       ],
+                          //                     ),
+                          //                   ],
+                          //                 ),
+                          //               ),
+                          //               onTap: () {},
+                          //             ),
+                          //           ],
+                          //         );
+                          //       },
+                          //     );
+                          //   },
+                          // ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             )
