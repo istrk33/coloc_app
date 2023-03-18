@@ -14,13 +14,16 @@ class AnnouncePage extends StatefulWidget {
   final String announceTitle;
 
   // receive data from the FirstScreen as a parameter
-  AnnouncePage({Key? key, required this.announceId, required this.announceTitle}) : super(key: key);
+  AnnouncePage(
+      {Key? key, required this.announceId, required this.announceTitle})
+      : super(key: key);
 
   @override
   _AnnouncePageState createState() => _AnnouncePageState();
 }
 
-class _AnnouncePageState extends State<AnnouncePage> with TickerProviderStateMixin {
+class _AnnouncePageState extends State<AnnouncePage>
+    with TickerProviderStateMixin {
   final double infoHeight = 364.0;
   AnimationController? animationController;
   Animation<double>? animation;
@@ -29,16 +32,18 @@ class _AnnouncePageState extends State<AnnouncePage> with TickerProviderStateMix
   double opacity3 = 0.0;
   String imgUrl = "";
   String title = "";
-  int rentValue = 0;
-  int roommatesNumber = 0;
-  int depositAmount = 0;
+  String rentValue = "";
+  String roommatesNumber = "";
+  String depositAmount = "";
   String description = "";
 
   @override
   void initState() {
-    animationController = AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
-    animation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: animationController!, curve: Interval(0, 1.0, curve: Curves.fastOutSlowIn)));
+    animationController = AnimationController(
+        duration: const Duration(milliseconds: 1000), vsync: this);
+    animation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+        parent: animationController!,
+        curve: Interval(0, 1.0, curve: Curves.fastOutSlowIn)));
     setData();
     _loadAnnounceData();
     super.initState();
@@ -61,25 +66,36 @@ class _AnnouncePageState extends State<AnnouncePage> with TickerProviderStateMix
   }
 
   Future<void> _loadAnnounceData() async {
-    final announceData = await FirebaseFirestore.instance.collection('announce').doc(widget.announceId).get();
+    final propertyQuerySnapshot = await FirebaseFirestore.instance
+        .collection('property')
+        .where('property_name', isEqualTo: widget.announceTitle)
+        .limit(1)
+        .get();
 
-    final propertyId = announceData.data()?['property_id'];
+    final propertyDoc = propertyQuerySnapshot.docs.first;
+    final propertyId = propertyDoc.id;
 
-    final propertyData = await FirebaseFirestore.instance.collection('property').doc(propertyId.id).get();
+    final announceQuerySnapshot = await FirebaseFirestore.instance
+        .collection('announce')
+        .where('property_id',
+            isEqualTo: FirebaseFirestore.instance.doc('property/$propertyId'))
+        .limit(1)
+        .get();
 
-    print('id annonce: ' + widget.announceId);
-    print('id property: ' + propertyId.id);
-    imgUrl = propertyData.data()?['imageUrl1'];
-    title = propertyData.data()?['property_name'];
-    rentValue = int.parse(announceData.data()?['price']);
-    roommatesNumber = int.parse(announceData.data()?['max_roomates']);
-    depositAmount = int.parse(announceData.data()?['deposit_amount']);
-    description = propertyData.data()?['description'];
+    final announceDoc = announceQuerySnapshot.docs.first;
+    imgUrl = propertyDoc.data()['imageUrl1'];
+    title = propertyDoc.data()['property_name'];
+    rentValue = announceDoc.data()['price'];
+    roommatesNumber = announceDoc.data()['max_roomates'];
+    depositAmount = announceDoc.data()['deposit_amount'];
+    description = propertyDoc.data()['description'];
   }
 
   @override
   Widget build(BuildContext context) {
-    final double tempHeight = MediaQuery.of(context).size.height - (MediaQuery.of(context).size.width / 1.2) + 24.0;
+    final double tempHeight = MediaQuery.of(context).size.height -
+        (MediaQuery.of(context).size.width / 1.2) +
+        24.0;
 
     return Container(
       color: Colors.white,
@@ -109,22 +125,32 @@ class _AnnouncePageState extends State<AnnouncePage> with TickerProviderStateMix
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(32.0), topRight: Radius.circular(32.0)),
+                  borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(32.0),
+                      topRight: Radius.circular(32.0)),
                   boxShadow: <BoxShadow>[
-                    BoxShadow(color: Colors.grey.withOpacity(0.2), offset: const Offset(1.1, 1.1), blurRadius: 10.0),
+                    BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        offset: const Offset(1.1, 1.1),
+                        blurRadius: 10.0),
                   ],
                 ),
                 child: Padding(
                   padding: const EdgeInsets.only(left: 8, right: 8),
                   child: SingleChildScrollView(
                     child: Container(
-                      constraints: BoxConstraints(minHeight: infoHeight, maxHeight: tempHeight > infoHeight ? tempHeight : infoHeight),
+                      constraints: BoxConstraints(
+                          minHeight: infoHeight,
+                          maxHeight: tempHeight > infoHeight
+                              ? tempHeight
+                              : infoHeight),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Padding(
-                            padding: const EdgeInsets.only(top: 32.0, left: 18, right: 16),
+                            padding: const EdgeInsets.only(
+                                top: 32.0, left: 18, right: 16),
                             child: Text(
                               title,
                               textAlign: TextAlign.left,
@@ -137,7 +163,8 @@ class _AnnouncePageState extends State<AnnouncePage> with TickerProviderStateMix
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8, top: 16),
+                            padding: const EdgeInsets.only(
+                                left: 16, right: 16, bottom: 8, top: 16),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -182,8 +209,11 @@ class _AnnouncePageState extends State<AnnouncePage> with TickerProviderStateMix
                               padding: const EdgeInsets.all(8),
                               child: Row(
                                 children: <Widget>[
-                                  getTimeBoxUI(roommatesNumber.toString(), 'Colocataires'),
-                                  getTimeBoxUI(depositAmount.toString() + '\u{20AC}', 'Caution'),
+                                  getTimeBoxUI(roommatesNumber.toString(),
+                                      'Colocataires'),
+                                  getTimeBoxUI(
+                                      depositAmount.toString() + '\u{20AC}',
+                                      'Caution'),
                                   getTimeBoxUI('3', 'Chambres'),
                                 ],
                               ),
@@ -195,7 +225,8 @@ class _AnnouncePageState extends State<AnnouncePage> with TickerProviderStateMix
                                 duration: const Duration(milliseconds: 500),
                                 opacity: opacity2,
                                 child: Padding(
-                                  padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
+                                  padding: const EdgeInsets.only(
+                                      left: 16, right: 16, top: 8, bottom: 8),
                                   child: Text(
                                     description,
                                     textAlign: TextAlign.justify,
@@ -214,7 +245,8 @@ class _AnnouncePageState extends State<AnnouncePage> with TickerProviderStateMix
                             duration: const Duration(milliseconds: 500),
                             opacity: opacity3,
                             child: Padding(
-                              padding: const EdgeInsets.only(left: 16, bottom: 16, right: 16),
+                              padding: const EdgeInsets.only(
+                                  left: 16, bottom: 16, right: 16),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -228,7 +260,11 @@ class _AnnouncePageState extends State<AnnouncePage> with TickerProviderStateMix
                                           Radius.circular(16.0),
                                         ),
                                         boxShadow: <BoxShadow>[
-                                          BoxShadow(color: MyTheme.blue3.withOpacity(0.5), offset: const Offset(1.1, 1.1), blurRadius: 10.0),
+                                          BoxShadow(
+                                              color: MyTheme.blue3
+                                                  .withOpacity(0.5),
+                                              offset: const Offset(1.1, 1.1),
+                                              blurRadius: 10.0),
                                         ],
                                       ),
                                       child: Center(
@@ -240,7 +276,8 @@ class _AnnouncePageState extends State<AnnouncePage> with TickerProviderStateMix
                                             fixedSize: const Size(250, 40),
                                             primary: MyTheme.blue3,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(18.0),
+                                              borderRadius:
+                                                  BorderRadius.circular(18.0),
                                             ),
                                           ),
                                           child: Text(
@@ -273,10 +310,12 @@ class _AnnouncePageState extends State<AnnouncePage> with TickerProviderStateMix
               right: 35,
               child: ScaleTransition(
                 alignment: Alignment.center,
-                scale: CurvedAnimation(parent: animationController!, curve: Curves.fastOutSlowIn),
+                scale: CurvedAnimation(
+                    parent: animationController!, curve: Curves.fastOutSlowIn),
                 child: Card(
                   color: MyTheme.blue3,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50.0)),
                   elevation: 10.0,
                   child: Container(
                     width: 60,
@@ -300,7 +339,8 @@ class _AnnouncePageState extends State<AnnouncePage> with TickerProviderStateMix
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(AppBar().preferredSize.height),
+                    borderRadius:
+                        BorderRadius.circular(AppBar().preferredSize.height),
                     child: Icon(
                       Icons.arrow_back_ios,
                       color: Colors.black,
@@ -370,12 +410,21 @@ class _AnnouncePageState extends State<AnnouncePage> with TickerProviderStateMix
                         onPressed: () async {
                           if (_descriptionController.text.isNotEmpty) {
                             // Submit form
-                            final CollectionReference<Map<String, dynamic>> users = FirebaseFirestore.instance.collection('Users');
-                            final DocumentReference<Map<String, dynamic>> userRef = users.doc(auth.currentUser!.uid.toString());
+                            final CollectionReference<Map<String, dynamic>>
+                                users =
+                                FirebaseFirestore.instance.collection('Users');
+                            final DocumentReference<Map<String, dynamic>>
+                                userRef =
+                                users.doc(auth.currentUser!.uid.toString());
 
-                            final collectionApplication = FirebaseFirestore.instance.collection('application');
-                            await collectionApplication
-                                .add({'id_candidate': userRef, 'id_announce': widget.announceId, 'description': _descriptionController.text});
+                            final collectionApplication = FirebaseFirestore
+                                .instance
+                                .collection('application');
+                            await collectionApplication.add({
+                              'id_candidate': userRef,
+                              'id_announce': widget.announceId,
+                              'description': _descriptionController.text
+                            });
                             Navigator.pop(context);
                           }
                         }),
@@ -395,11 +444,15 @@ class _AnnouncePageState extends State<AnnouncePage> with TickerProviderStateMix
           color: Colors.white,
           borderRadius: const BorderRadius.all(Radius.circular(16.0)),
           boxShadow: <BoxShadow>[
-            BoxShadow(color: Colors.grey.withOpacity(0.2), offset: const Offset(1.1, 1.1), blurRadius: 8.0),
+            BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                offset: const Offset(1.1, 1.1),
+                blurRadius: 8.0),
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.only(left: 18.0, right: 18.0, top: 12.0, bottom: 12.0),
+          padding: const EdgeInsets.only(
+              left: 18.0, right: 18.0, top: 12.0, bottom: 12.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,

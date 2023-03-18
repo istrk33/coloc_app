@@ -7,8 +7,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class HomeTenant extends StatelessWidget {
-  final CollectionReference announceCollection = FirebaseFirestore.instance.collection('announce');
-  final CollectionReference propertyCollection = FirebaseFirestore.instance.collection('property');
+  final CollectionReference announceCollection =
+      FirebaseFirestore.instance.collection('announce');
+  final CollectionReference propertyCollection =
+      FirebaseFirestore.instance.collection('property');
   List<Map<String, dynamic>> propertyList = [];
 
   HomeTenant({Key? key}) : super(key: key);
@@ -25,11 +27,13 @@ class HomeTenant extends StatelessWidget {
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+          //print(snapshot.data![0]);
           return ListView.builder(
             itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
               Map<String, dynamic> property = snapshot.data![index];
               String imgUrl = property['propertyImgUrl1'];
+              Timestamp date = property['announceDate'];
               return InkWell(
                 child: Container(
                   height: 225,
@@ -143,7 +147,9 @@ class HomeTenant extends StatelessWidget {
                         ),
                         alignment: Alignment.bottomRight,
                         child: Text(
-                          'date',
+                          timeago
+                              .format(date.toDate(), locale: locale)
+                              .toString(),
                           style: const TextStyle(
                             color: Color.fromARGB(
                               255,
@@ -162,8 +168,9 @@ class HomeTenant extends StatelessWidget {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => AnnouncePage(
-                        announceId: property['announceId'],
-                        announceTitle: property['propertyName'].toString(),
+                        announceId: snapshot.data![index]['announceId'],
+                        announceTitle:
+                            snapshot.data![index]['propertyName'].toString(),
                       ),
                     ),
                   );
@@ -180,15 +187,18 @@ class HomeTenant extends StatelessWidget {
 
   Future<List<Map<String, dynamic>>> getAnnounceWithProperty() async {
     QuerySnapshot<Object?> announceSnap = await announceCollection.get();
-    List propertyIds = announceSnap.docs.map((doc) => doc['property_id']).toList();
+    List propertyIds =
+        announceSnap.docs.map((doc) => doc['property_id']).toList();
 
-    QuerySnapshot<Map<String, dynamic>> propertySnap =
-        await propertyCollection.where(FieldPath.documentId, whereIn: propertyIds).get() as QuerySnapshot<Map<String, dynamic>>;
+    QuerySnapshot<Map<String, dynamic>> propertySnap = await propertyCollection
+        .where(FieldPath.documentId, whereIn: propertyIds)
+        .get() as QuerySnapshot<Map<String, dynamic>>;
 
     List<Map<String, dynamic>> combinedData = [];
 
     for (var i = 0; i < announceSnap.docs.length; i++) {
-      Map<String, dynamic> announceData = announceSnap.docs[i].data() as Map<String, dynamic>;
+      Map<String, dynamic> announceData =
+          announceSnap.docs[i].data() as Map<String, dynamic>;
       var propertyData = propertySnap.docs[i].data();
 
       combinedData.add({
