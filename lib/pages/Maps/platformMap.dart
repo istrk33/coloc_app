@@ -17,9 +17,9 @@ class _MyPlatformMapState extends State<MyPlatformMap> {
       FirebaseFirestore.instance.collection('property');
   String imgUrl = "";
   String announceTitle = "";
-  int rentValue = 0;
-  int roommatesNumber = 0;
-  int depositAmount = 0;
+  String rentValue = "";
+  String roommatesNumber = "";
+  String depositAmount = "";
   String description = "";
 
   Position? _currentPosition;
@@ -98,18 +98,17 @@ class _MyPlatformMapState extends State<MyPlatformMap> {
                     ),
                   ),
                   Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Row(
-                                children: <Widget>[
-                                  getTimeBoxUI(roommatesNumber.toString(),
-                                      'Colocataires'),
-                                  getTimeBoxUI(
-                                      depositAmount.toString() + '\u{20AC}',
-                                      'Caution'),
-                                  getTimeBoxUI('3', 'Chambres'),
-                                ],
-                              ),
-                            ),
+                    padding: const EdgeInsets.all(8),
+                    child: Row(
+                      children: <Widget>[
+                        getTimeBoxUI(
+                            roommatesNumber.toString(), 'Colocataires'),
+                        getTimeBoxUI(
+                            depositAmount.toString() + '\u{20AC}', 'Caution'),
+                        getTimeBoxUI('3', 'Chambres'),
+                      ],
+                    ),
+                  ),
                   Padding(
                     padding: EdgeInsets.fromLTRB(10, 5, 10, 0),
                     child: Text(
@@ -200,22 +199,30 @@ class _MyPlatformMapState extends State<MyPlatformMap> {
   Future<void> _loadAnnounceData(id) async {
     final propertyRef =
         FirebaseFirestore.instance.collection('property').doc(id);
-    final announceData = await FirebaseFirestore.instance
-        .collection('announce')
-        .where('property_id', isEqualTo: propertyRef)
-        .get();
+    final propertySnapshot = await propertyRef.get();
 
-    if (announceData.size == 1) {
-      final data = announceData.docs[0].data();
-      announceTitle = data['title'];
-      imgUrl = data['img_url'];
-      rentValue = data['price'];
-      roommatesNumber = data['max_roomates'];
-      depositAmount = data['deposit_amount'];
-      description = data['description'];
+    if (propertySnapshot.exists) {
+      final announceData = await FirebaseFirestore.instance
+          .collection('announce')
+          .where('property_id', isEqualTo: propertyRef)
+          .get();
+
+      if (announceData.size == 1) {
+        final announceSnapshot = announceData.docs[0];
+        final data = announceSnapshot.data();
+        final propertyData = propertySnapshot.data();
+        announceTitle = propertyData!['property_name'];
+        imgUrl = propertyData['imageUrl1'];
+        rentValue = data['price'];
+        roommatesNumber = data['max_roomates'];
+        depositAmount = data['deposit_amount'];
+        description = propertyData['description'];
+      } else {
+        throw Exception(
+            'Aucune annonce trouvée pour l\'ID de propriété spécifié.');
+      }
     } else {
-      throw Exception(
-          'Aucune annonce trouvée pour l\'ID de propriété spécifié.');
+      throw Exception('Aucune propriété trouvée pour l\'ID spécifié.');
     }
   }
 
