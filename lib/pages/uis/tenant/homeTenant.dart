@@ -34,23 +34,45 @@ class HomeTenant extends StatelessWidget {
                 child: Container(
                   height: 225,
                   width: double.infinity,
-                  margin: EdgeInsets.fromLTRB(20, 10, 20, 0),
+                  margin: EdgeInsets.fromLTRB(
+                    20,
+                    10,
+                    20,
+                    0,
+                  ),
                   decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 255, 255, 255),
-                    borderRadius: BorderRadius.circular(15),
+                    color: Color.fromARGB(
+                      255,
+                      255,
+                      255,
+                      255,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      15,
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
+                        color: Colors.grey.withOpacity(
+                          0.5,
+                        ),
                         spreadRadius: 5,
                         blurRadius: 7,
-                        offset: Offset(0, 3), // changes position of shadow
+                        offset: Offset(
+                          0,
+                          3,
+                        ), // changes position of shadow
                       ),
                     ],
                   ),
                   child: Stack(
                     children: [
                       Container(
-                        margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                        margin: const EdgeInsets.fromLTRB(
+                          0,
+                          0,
+                          0,
+                          0,
+                        ),
                         alignment: Alignment.topCenter,
                         child: ClipRRect(
                           borderRadius: const BorderRadius.only(
@@ -70,11 +92,20 @@ class HomeTenant extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        margin: const EdgeInsets.fromLTRB(0, 40, 0, 0),
+                        margin: const EdgeInsets.fromLTRB(
+                          0,
+                          40,
+                          0,
+                          0,
+                        ),
                         alignment: Alignment.centerLeft,
                         child: Text(
                           property['propertyName'],
-                          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 15),
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
                         ),
                       ),
                       Container(
@@ -91,7 +122,9 @@ class HomeTenant extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        margin: const EdgeInsets.only(bottom: 5),
+                        margin: const EdgeInsets.only(
+                          bottom: 5,
+                        ),
                         alignment: Alignment.bottomCenter,
                         child: Text(
                           property['announcePrice'].toString() + "\u{20AC}",
@@ -102,12 +135,22 @@ class HomeTenant extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        margin: const EdgeInsets.fromLTRB(0, 0, 10, 5),
+                        margin: const EdgeInsets.fromLTRB(
+                          0,
+                          0,
+                          10,
+                          5,
+                        ),
                         alignment: Alignment.bottomRight,
                         child: Text(
                           'date',
                           style: const TextStyle(
-                            color: Color.fromARGB(255, 24, 1, 1),
+                            color: Color.fromARGB(
+                              255,
+                              24,
+                              1,
+                              1,
+                            ),
                             fontSize: 12,
                           ),
                         ),
@@ -159,7 +202,7 @@ class HomeTenant extends StatelessWidget {
       });
     }
 
-    //print(combinedData);
+    print(combinedData);
     return combinedData;
   }
 }
