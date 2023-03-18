@@ -733,9 +733,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                           ),
                                         ),
                                         onTap: () {
-                                          print("caca")
-                                          
-                                          ;
+                                          print("caca");
                                         },
                                       ),
                                     ],
@@ -761,7 +759,10 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                         ),
                         Expanded(
                           child: StreamBuilder<QuerySnapshot>(
-                            stream: FirebaseFirestore.instance.collection('property').where('id_owner', isEqualTo: auth.currentUser!.uid).snapshots(),
+                            stream: FirebaseFirestore.instance
+                                .collection('property')
+                                .where('id_owner', isEqualTo: FirebaseFirestore.instance.collection('Users').doc(auth.currentUser!.uid))
+                                .snapshots(),
                             builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> propertiesSnapshot) {
                               if (propertiesSnapshot.hasError) {
                                 return Text('Une erreur est survenue : ${propertiesSnapshot.error}');
@@ -773,12 +774,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
 
                               // récupère les données du snapshot
                               final data = propertiesSnapshot.data!.docs;
-                              log('your message here');
-                              log("=========================================================================================================");
-                              log(data.toString());
-                              final propertyIds = data.map((doc) => doc.id).toList();
-                              log(propertyIds.toString());
-                              log("=========================================================================================================");
+                              final propertyIds = data.map((doc) => FirebaseFirestore.instance.collection('property').doc(doc.id)).toList();
 
                               return StreamBuilder<QuerySnapshot>(
                                 stream: FirebaseFirestore.instance.collection('announce').where('property_id', whereIn: propertyIds).snapshots(),
@@ -787,7 +783,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                     return Text('Une erreur est survenue : ${announceSnapshot.error}');
                                   }
 
-                                  if (!announceSnapshot.hasData) { 
+                                  if (!announceSnapshot.hasData) {
                                     return Text('Aucune annonce trouvée !');
                                   }
 
@@ -798,13 +794,104 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                     itemCount: announceData.length,
                                     itemBuilder: (BuildContext context, int index) {
                                       final document = announceData[index];
-                                      // retourne un widget pour chaque document dans le snapshot d'annonce
-                                      return ListTile(
-                                        title: Text(document['price']),
-                                        subtitle: Text(document['deposit']),
+                                      return FutureBuilder<DocumentSnapshot>(
+                                        future: document['property_id'].get(),
+                                        builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                                          if (snapshot.connectionState == ConnectionState.done) {
+                                            final correspondingProperty = snapshot.data!;
+                                            // return ListTile(
+                                            //   title: Text(correspondingProperty['property_name']),
+                                            //   subtitle: Text(correspondingProperty['description']),
+                                            //   // trailing: Text(document['des']),
+                                            // );
+                                            return Dismissible(
+                                                key: Key('key'),
+                                                direction: DismissDirection.startToEnd,
+                                                onDismissed: (direction) {
+                                                  // Fonction à exécuter lorsque l'élément est supprimé
+
+                                                },
+                                                 background: Container(
+        color: Colors.red,
+        child: Icon(Icons.delete, color: Colors.white),
+        alignment: Alignment.centerLeft,
+        padding: EdgeInsets.only(left: 16),
+      ),
+                                                child: ListTile(
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(10),
+                                                      side: BorderSide(color: Colors.grey),
+                                                    ),
+                                                    leading: Image.network(
+                                                      correspondingProperty['imageUrl1'],
+                                                      width: 50,
+                                                      height: 50,
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                    title: Text(
+                                                      'Titre de la propriété',
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                    subtitle: Text(
+                                                      'Adresse de la propriété',
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                    trailing: IconButton(
+                                                      icon: Icon(Icons.chevron_right_rounded),
+                                                      onPressed: () {},
+                                                    )
+
+                                                    // Row(
+                                                    //   mainAxisAlignment: MainAxisAlignment.center,
+                                                    //   children: [
+                                                    //     Column(
+                                                    //       children: [
+                                                    //         ElevatedButton(
+                                                    //           onPressed: () {},
+                                                    //           child: Icon(Icons.abc),
+                                                    //         ),
+                                                    //         SizedBox(width: 8),
+                                                    //         ElevatedButton(
+                                                    //           onPressed: () {},
+                                                    //           // child: Text('Bouton 2'),
+                                                    //           child: Icon(Icons.abc),
+                                                    //         ),
+                                                    //       ],
+                                                    //     ),
+                                                    //     SizedBox(height: 8),
+                                                    //     ElevatedButton(
+                                                    //       onPressed: () {},
+                                                    //       // child: Text('Bouton 3'),
+                                                    //           child: Icon(Icons.abc),
+                                                    //     ),
+                                                    //   ],
+                                                    // ),
+                                                    ));
+                                          } else {
+                                            return SizedBox.shrink();
+                                          }
+                                        },
                                       );
                                     },
                                   );
+                                  // return ListView.builder(
+                                  //   itemCount: announceData.length,
+                                  //   itemBuilder: (BuildContext context, int index) async{
+                                  //     final document = announceData[index];
+                                  //     final correspondingProperty = await document['property_id'].get();
+                                  //     print(correspondingProperty);
+                                  //     print(document);
+                                  //     return ListTile(
+                                  //       title: Text(document['price']),
+                                  //       subtitle: Text(document['deposit_amount']),
+                                  //     );
+                                  //   },
+                                  // );
                                 },
                               );
                             },
