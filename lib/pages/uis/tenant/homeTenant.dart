@@ -7,10 +7,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class HomeTenant extends StatelessWidget {
-  final CollectionReference announceCollection =
-      FirebaseFirestore.instance.collection('announce');
-  final CollectionReference propertyCollection =
-      FirebaseFirestore.instance.collection('property');
+  final CollectionReference announceCollection = FirebaseFirestore.instance.collection('announce');
+  final CollectionReference propertyCollection = FirebaseFirestore.instance.collection('property');
   List<Map<String, dynamic>> propertyList = [];
 
   HomeTenant({Key? key}) : super(key: key);
@@ -76,18 +74,16 @@ class HomeTenant extends StatelessWidget {
                         alignment: Alignment.centerLeft,
                         child: Text(
                           property['propertyName'],
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15
-                          ),
+                          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                       ),
                       Container(
                         margin: const EdgeInsets.fromLTRB(0, 120, 0, 0),
                         alignment: Alignment.center,
                         child: Text(
-                          '${'-' + property['propertyDescription'].substring(0, 200)}...',
+                          property['propertyDescription'].length > 200
+                              ? '${'-' + property['propertyDescription'].substring(0, 200)}...'
+                              : property['propertyDescription'],
                           style: const TextStyle(
                             color: Colors.black,
                             fontSize: 12,
@@ -141,18 +137,15 @@ class HomeTenant extends StatelessWidget {
 
   Future<List<Map<String, dynamic>>> getAnnounceWithProperty() async {
     QuerySnapshot<Object?> announceSnap = await announceCollection.get();
-    List propertyIds =
-        announceSnap.docs.map((doc) => doc['property_id']).toList();
+    List propertyIds = announceSnap.docs.map((doc) => doc['property_id']).toList();
 
-    QuerySnapshot<Map<String, dynamic>> propertySnap = await propertyCollection
-        .where(FieldPath.documentId, whereIn: propertyIds)
-        .get() as QuerySnapshot<Map<String, dynamic>>;
+    QuerySnapshot<Map<String, dynamic>> propertySnap =
+        await propertyCollection.where(FieldPath.documentId, whereIn: propertyIds).get() as QuerySnapshot<Map<String, dynamic>>;
 
     List<Map<String, dynamic>> combinedData = [];
 
     for (var i = 0; i < announceSnap.docs.length; i++) {
-      Map<String, dynamic> announceData =
-          announceSnap.docs[i].data() as Map<String, dynamic>;
+      Map<String, dynamic> announceData = announceSnap.docs[i].data() as Map<String, dynamic>;
       var propertyData = propertySnap.docs[i].data();
 
       combinedData.add({

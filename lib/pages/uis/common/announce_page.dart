@@ -82,9 +82,9 @@ class _AnnouncePageState extends State<AnnouncePage>
     print('id property: '+propertyId.id);
     imgUrl = propertyData.data()?['imageUrl1'];
     title = propertyData.data()?['property_name'];
-    rentValue = announceData.data()?['price'];
-    roommatesNumber = announceData.data()?['max_roomates'];
-    depositAmount = announceData.data()?['deposit_amount'];
+    rentValue =  int.parse(announceData.data()?['price']);
+    roommatesNumber = int.parse(announceData.data()?['max_roomates']);
+    depositAmount = int.parse(announceData.data()?['deposit_amount']);
    description = propertyData.data()?['description'];
   }
 
