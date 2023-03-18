@@ -1,3 +1,4 @@
+import 'package:coloc_app/pages/uis/common/profile_guest.dart';
 import 'package:coloc_app/themes/color.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -37,6 +38,8 @@ class _AnnouncePageState extends State<AnnouncePage>
   String depositAmount = "";
   String description = "";
   String announceIdFromFunction = "";
+  String ownerAccountId = "";
+  String ownerAccountName = "";
 
   @override
   void initState() {
@@ -86,12 +89,17 @@ class _AnnouncePageState extends State<AnnouncePage>
     final announceDoc = announceQuerySnapshot.docs.first;
     announceIdFromFunction = announceDoc.id;
 
+    final userIdRef = propertyDoc.data()['id_owner'];
+    final userDoc = await userIdRef.get();
+
     imgUrl = propertyDoc.data()['imageUrl1'];
     title = propertyDoc.data()['property_name'];
     rentValue = announceDoc.data()['price'];
     roommatesNumber = announceDoc.data()['max_roomates'];
     depositAmount = announceDoc.data()['deposit_amount'];
     description = propertyDoc.data()['description'];
+    ownerAccountName = userDoc.data()['first_last_name'];
+    ownerAccountId = userDoc.id;
   }
 
   @override
@@ -153,7 +161,7 @@ class _AnnouncePageState extends State<AnnouncePage>
                         children: <Widget>[
                           Padding(
                             padding: const EdgeInsets.only(
-                                top: 32.0, left: 18, right: 16),
+                                top: 10.0, left: 18, right: 16),
                             child: Text(
                               title,
                               textAlign: TextAlign.left,
@@ -167,7 +175,7 @@ class _AnnouncePageState extends State<AnnouncePage>
                           ),
                           Padding(
                             padding: const EdgeInsets.only(
-                                left: 16, right: 16, bottom: 8, top: 16),
+                                left: 16, right: 16, bottom: 5, top: 0),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -208,8 +216,7 @@ class _AnnouncePageState extends State<AnnouncePage>
                           AnimatedOpacity(
                             duration: const Duration(milliseconds: 500),
                             opacity: opacity1,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
+                            child: Center(
                               child: Row(
                                 children: <Widget>[
                                   getTimeBoxUI(roommatesNumber.toString(),
@@ -229,7 +236,7 @@ class _AnnouncePageState extends State<AnnouncePage>
                                 opacity: opacity2,
                                 child: Padding(
                                   padding: const EdgeInsets.only(
-                                      left: 16, right: 16, top: 8, bottom: 8),
+                                      left: 16, right: 16, top: 8, bottom: 0),
                                   child: Text(
                                     description,
                                     textAlign: TextAlign.justify,
@@ -249,7 +256,7 @@ class _AnnouncePageState extends State<AnnouncePage>
                             opacity: opacity3,
                             child: Padding(
                               padding: const EdgeInsets.only(
-                                  left: 16, bottom: 16, right: 16),
+                                  left: 16, bottom: 0, right: 16),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -276,6 +283,40 @@ class _AnnouncePageState extends State<AnnouncePage>
                                           ),
                                         ),
                                       ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(100, 0, 20, 0),
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ProfilePageGuest(
+                                        userId: ownerAccountId,
+                                      ),
+                                    ));
+                              },
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  CircleAvatar(
+                                    radius: 25,
+                                    backgroundImage: NetworkImage(
+                                      'https://www.pngitem.com/pimgs/m/504-5040528_empty-profile-picture-png-transparent-png.png',
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
+                                    child: Text(
+                                      ownerAccountName,
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                 ],
@@ -338,7 +379,7 @@ class _AnnouncePageState extends State<AnnouncePage>
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -367,7 +408,7 @@ class _AnnouncePageState extends State<AnnouncePage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: EdgeInsets.fromLTRB(15, 15, 15, 20),
+                    padding: EdgeInsets.fromLTRB(15, 15, 15, 30),
                     child: Container(
                       child: TextFormField(
                         controller: _descriptionController,
@@ -376,6 +417,9 @@ class _AnnouncePageState extends State<AnnouncePage>
                             const InputDecoration(labelText: 'Description'),
                       ),
                     ),
+                  ),
+                  const SizedBox(
+                    height: 0,
                   ),
                   Center(
                     child: ElevatedButton(
@@ -445,7 +489,7 @@ class _AnnouncePageState extends State<AnnouncePage>
 
   Widget getTimeBoxUI(String text1, String txt2) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -459,7 +503,7 @@ class _AnnouncePageState extends State<AnnouncePage>
         ),
         child: Padding(
           padding: const EdgeInsets.only(
-              left: 18.0, right: 18.0, top: 12.0, bottom: 12.0),
+              left: 8.0, right: 8.0, top: 8.0, bottom: 8.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,

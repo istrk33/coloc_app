@@ -187,7 +187,8 @@ class HomeTenant extends StatelessWidget {
   }
 
   Future<List<Map<String, dynamic>>> getAnnounceWithProperty() async {
-    QuerySnapshot<Object?> announceSnap = await announceCollection.get();
+    QuerySnapshot<Object?> announceSnap =
+        await announceCollection.where('is_active', isEqualTo: true).get();
     List propertyIds =
         announceSnap.docs.map((doc) => doc['property_id']).toList();
 
@@ -213,7 +214,7 @@ class HomeTenant extends StatelessWidget {
       });
     }
 
-    print(combinedData);
+    //print(combinedData);
     return combinedData;
   }
 }
