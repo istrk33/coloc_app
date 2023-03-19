@@ -271,7 +271,7 @@ class _MyPlatformMapState extends State<MyPlatformMap> {
           ),
           Align(
             alignment: Alignment.topCenter,
-            child: SearchMapPlaceWidget(
+            child: Padding(padding: EdgeInsets.only(top: 10),child:SearchMapPlaceWidget(
               iconColor: MyTheme.blue3,
               bgColor: Colors.white.withOpacity(0.8),
               textColor: MyTheme.blue3,
@@ -285,7 +285,7 @@ class _MyPlatformMapState extends State<MyPlatformMap> {
                     geolocation.coordinates.longitude)));
               },
             ),
-          ),
+          ),),
         ],
       ),
     );
