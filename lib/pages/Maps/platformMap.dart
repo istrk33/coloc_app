@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:platform_maps_flutter/platform_maps_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:latlong2/latlong.dart' as depLat;
+import 'package:search_map_place_updated/search_map_place_updated.dart';
 
 class MyPlatformMap extends StatefulWidget {
   @override
@@ -173,29 +174,6 @@ class _MyPlatformMapState extends State<MyPlatformMap> {
     });
   }
 
-/*getAnnounceWithPropertyLatLng() async {
-  QuerySnapshot<Object?> announceSnap = await announceCollection.get();
-  List propertyIds =
-      announceSnap.docs.map((doc) => doc['property_id']).toList();
-
-  QuerySnapshot<Map<String, dynamic>> propertySnap =
-      await propertyCollection
-          .where(FieldPath.documentId, whereIn: propertyIds)
-          .get() as QuerySnapshot<Map<String, dynamic>>;
-
-  List<Map<String, dynamic>> propertyList =
-      propertySnap.docs.map((doc) => doc.data()).toList();
-
-  List<LatLng> positionList = propertyList
-      .map((doc) =>
-          LatLng(doc['position'].latitude as double, doc['position'].longitude as double))
-      .toList();
-
-      /*for (int i = 0; i < positionList.length; i++) {
-          initMarker(positionList[i], positionList[i]);
-        };*/
-}*/
-
   Future<void> _loadAnnounceData(id) async {
     final propertyRef =
         FirebaseFirestore.instance.collection('property').doc(id);
@@ -268,29 +246,47 @@ class _MyPlatformMapState extends State<MyPlatformMap> {
 
     _getCurrentLocation();
     initMarkersData();
-    //getAnnounceWithPropertyLatLng();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: PlatformMap(
-          initialCameraPosition: CameraPosition(
-            target: LatLng(44.836151, 0.580816), // position par défaut
-            zoom: 12.0,
+      body: Stack(
+        children: [
+          PlatformMap(
+            initialCameraPosition: CameraPosition(
+              target: LatLng(44.836151, 0.580816), // position par défaut
+              zoom: 12.0,
+            ),
+            markers: Set<Marker>.of(markers.values),
+            onMapCreated: (controller) {
+              setState(() {
+                _mapController = controller;
+              });
+            },
+            myLocationEnabled: true,
+            myLocationButtonEnabled: true,
+            mapType: MapType.normal,
           ),
-          markers: Set<Marker>.of(markers.values),
-          onMapCreated: (controller) {
-            setState(() {
-              _mapController = controller;
-            });
-          },
-          myLocationEnabled: true,
-          myLocationButtonEnabled: true,
-          mapType: MapType.normal,
-        ),
+          Align(
+            alignment: Alignment.topCenter,
+            child: SearchMapPlaceWidget(
+              iconColor: MyTheme.blue3,
+              bgColor: Colors.white.withOpacity(0.8),
+              textColor: MyTheme.blue3,
+              apiKey: 'AIzaSyC4svFwOreKsSB4vNYxgkRJXLd3WufLflc',
+              placeholder: 'Rechercher une ville',
+              language: 'fr',
+              onSelected: (Place place) async {
+                final geolocation = await place.geolocation;
+                _mapController!.animateCamera(CameraUpdate.newLatLng(LatLng(
+                    geolocation!.coordinates.latitude,
+                    geolocation.coordinates.longitude)));
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

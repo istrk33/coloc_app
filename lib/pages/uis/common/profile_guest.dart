@@ -71,14 +71,17 @@ class _ProfilePageGuestState extends State<ProfilePageGuest> {
                 ),
               ),
               SizedBox(height: 20),
+              Divider(
+                indent: 24,
+                endIndent: 24,
+              ),
               Text(
-                "Proprietés de l'utilisateur",
+                'Propriétés de ' + userName,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 10),
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('property')
@@ -98,7 +101,8 @@ class _ProfilePageGuestState extends State<ProfilePageGuest> {
                     itemBuilder: (BuildContext context, int index) {
                       final announce = announces[index];
                       return Container(
-                        padding: EdgeInsets.all(16),
+                        padding: EdgeInsets.only(left: 50, right: 50, top: 20),
+                        decoration: BoxDecoration(),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -123,8 +127,13 @@ class _ProfilePageGuestState extends State<ProfilePageGuest> {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              announce['description'] as String,
-                              style: TextStyle(fontSize: 14),
+                              announce['description'].length > 300
+                                  ? '${'-' + announce['description'].substring(0, 300)}...'
+                                  : announce['description'],
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),

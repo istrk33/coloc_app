@@ -98,8 +98,8 @@ class HomeTenant extends StatelessWidget {
                       ),
                       Container(
                         margin: const EdgeInsets.fromLTRB(
-                          0,
-                          40,
+                          5,
+                          50,
                           0,
                           0,
                         ),
@@ -114,11 +114,11 @@ class HomeTenant extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        margin: const EdgeInsets.fromLTRB(0, 120, 0, 0),
-                        alignment: Alignment.center,
+                        margin: const EdgeInsets.fromLTRB(150, 120, 0, 0),
+                        alignment: Alignment.centerRight,
                         child: Text(
-                          property['propertyDescription'].length > 150
-                              ? '${'-' + property['propertyDescription'].substring(0, 150)}...'
+                          property['propertyDescription'].length > 200
+                              ? '${'-' + property['propertyDescription'].substring(0, 200)}...'
                               : property['propertyDescription'],
                           style: const TextStyle(
                             color: Colors.black,
@@ -127,10 +127,8 @@ class HomeTenant extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        margin: const EdgeInsets.only(
-                          bottom: 5,
-                        ),
-                        alignment: Alignment.bottomCenter,
+                        margin: const EdgeInsets.fromLTRB(5, 90, 0, 0),
+                        alignment: Alignment.centerLeft,
                         child: Text(
                           property['announcePrice'].toString() + "\u{20AC}",
                           style: TextStyle(
@@ -141,12 +139,12 @@ class HomeTenant extends StatelessWidget {
                       ),
                       Container(
                         margin: const EdgeInsets.fromLTRB(
-                          0,
+                          5,
                           0,
                           10,
                           5,
                         ),
-                        alignment: Alignment.bottomRight,
+                        alignment: Alignment.bottomLeft,
                         child: Text(
                           timeago
                               .format(date.toDate(), locale: locale)

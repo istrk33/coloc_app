@@ -3,6 +3,7 @@ import 'package:coloc_app/themes/color.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lottie/lottie.dart';
 
 import '../../../widgets/profile_textfield_widget.dart';
 
@@ -457,6 +458,19 @@ class _AnnouncePageState extends State<AnnouncePage>
                               'description': _descriptionController.text
                             });
                             Navigator.pop(context);
+                            showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: Lottie.network(
+                                      'https://assets1.lottiefiles.com/packages/lf20_Nd1IlGbdnB.json',
+                                      repeat: false,
+                                    ),
+                                  );
+                                });
                           } else {
                             if (_descriptionController.text.isEmpty) {
                               showDialog(
