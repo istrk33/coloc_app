@@ -5,6 +5,11 @@ import 'package:platform_maps_flutter/platform_maps_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:latlong2/latlong.dart' as depLat;
 import 'package:search_map_place_updated/search_map_place_updated.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:lottie/lottie.dart' as Lot;
+
+FirebaseAuth auth = FirebaseAuth.instance;
+final User? currentUser = auth.currentUser;
 
 class MyPlatformMap extends StatefulWidget {
   @override
@@ -16,8 +21,10 @@ class _MyPlatformMapState extends State<MyPlatformMap> {
       FirebaseFirestore.instance.collection('announce');
   final CollectionReference propertyCollection =
       FirebaseFirestore.instance.collection('property');
+
   String imgUrl = "";
   String announceTitle = "";
+  String announceId = "";
   String rentValue = "";
   String roommatesNumber = "";
   String depositAmount = "";
@@ -124,12 +131,12 @@ class _MyPlatformMapState extends State<MyPlatformMap> {
                     ),
                   ),
                   const SizedBox(
-                    height: 10,
+                    height: 25,
                   ),
                   Center(
                     child: ElevatedButton(
                       onPressed: () {
-                        // Action à effectuer lorsque le bouton est pressé
+                        _applicationBottomSheet(context);
                       },
                       style: ElevatedButton.styleFrom(
                         fixedSize: const Size(180, 40),
@@ -139,13 +146,127 @@ class _MyPlatformMapState extends State<MyPlatformMap> {
                         ),
                       ),
                       child: Text(
-                        'Coloc',
+                        'Candidater',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16.0,
                         ),
                       ),
                     ),
+                  )
+                ],
+              ),
+            );
+          }),
+    );
+  }
+
+  void _applicationBottomSheet(BuildContext context) async {
+    final _descriptionController = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+        top: Radius.circular(30),
+      )),
+      builder: (context) => DraggableScrollableSheet(
+          initialChildSize: 0.5,
+          maxChildSize: 0.9,
+          minChildSize: 0.32,
+          expand: false,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              clipBehavior: Clip.none,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(15, 15, 15, 30),
+                    child: Container(
+                      child: TextFormField(
+                        controller: _descriptionController,
+                        maxLines: null,
+                        decoration:
+                            const InputDecoration(labelText: 'Description'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 0,
+                  ),
+                  Center(
+                    child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          fixedSize: const Size(180, 40),
+                          backgroundColor: MyTheme.blue3,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18.0),
+                          ),
+                        ),
+                        child: Text(
+                          'Canditater',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16.0,
+                          ),
+                        ),
+                        onPressed: () async {
+                          if (_descriptionController.text.isNotEmpty) {
+                            // Submit form
+                            final CollectionReference<Map<String, dynamic>>
+                                users =
+                                FirebaseFirestore.instance.collection('Users');
+                            final DocumentReference<Map<String, dynamic>>
+                                userRef =
+                                users.doc(auth.currentUser!.uid.toString());
+
+                            final collectionApplication = FirebaseFirestore
+                                .instance
+                                .collection('application');
+                            await collectionApplication.add({
+                              'id_candidate': userRef,
+                              'id_announce': announceId,
+                              'description': _descriptionController.text
+                            });
+                            Navigator.pop(context);
+                            showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: Lot.Lottie.network(
+                                      'https://assets1.lottiefiles.com/packages/lf20_Nd1IlGbdnB.json',
+                                      repeat: false,
+                                    ),
+                                  );
+                                });
+                          } else {
+                            if (_descriptionController.text.isEmpty) {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text('Impossible de candidater'),
+                                    content: Text(
+                                        'La description ne peut pas être vide, présentez vous brievement.'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        child: Text('Fermer'),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            }
+                          }
+                        }),
                   )
                 ],
               ),
@@ -190,6 +311,7 @@ class _MyPlatformMapState extends State<MyPlatformMap> {
         final data = announceSnapshot.data();
         final propertyData = propertySnapshot.data();
         announceTitle = propertyData!['property_name'];
+        announceId = announceSnapshot.id;
         imgUrl = propertyData['imageUrl1'];
         rentValue = data['price'];
         roommatesNumber = data['max_roomates'];
@@ -271,21 +393,24 @@ class _MyPlatformMapState extends State<MyPlatformMap> {
           ),
           Align(
             alignment: Alignment.topCenter,
-            child: Padding(padding: EdgeInsets.only(top: 10),child:SearchMapPlaceWidget(
-              iconColor: MyTheme.blue3,
-              bgColor: Colors.white.withOpacity(0.8),
-              textColor: MyTheme.blue3,
-              apiKey: 'AIzaSyC4svFwOreKsSB4vNYxgkRJXLd3WufLflc',
-              placeholder: 'Rechercher une ville',
-              language: 'fr',
-              onSelected: (Place place) async {
-                final geolocation = await place.geolocation;
-                _mapController!.animateCamera(CameraUpdate.newLatLng(LatLng(
-                    geolocation!.coordinates.latitude,
-                    geolocation.coordinates.longitude)));
-              },
+            child: Padding(
+              padding: EdgeInsets.only(top: 10),
+              child: SearchMapPlaceWidget(
+                iconColor: MyTheme.blue3,
+                bgColor: Colors.white.withOpacity(0.8),
+                textColor: MyTheme.blue3,
+                apiKey: 'AIzaSyC4svFwOreKsSB4vNYxgkRJXLd3WufLflc',
+                placeholder: 'Rechercher une ville',
+                language: 'fr',
+                onSelected: (Place place) async {
+                  final geolocation = await place.geolocation;
+                  _mapController!.animateCamera(CameraUpdate.newLatLng(LatLng(
+                      geolocation!.coordinates.latitude,
+                      geolocation.coordinates.longitude)));
+                },
+              ),
             ),
-          ),),
+          ),
         ],
       ),
     );
