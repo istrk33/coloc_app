@@ -13,25 +13,23 @@ class ProfilePageGuest extends StatefulWidget {
 class _ProfilePageGuestState extends State<ProfilePageGuest> {
   String userName = "";
   String description = "";
+  String id = "";
 
   @override
   void initState() {
+    id = widget.userId;
     super.initState();
-    // Vous pouvez écrire votre code d'initialisation ici
-    // Par exemple, vous pouvez récupérer les données de l'utilisateur à partir de Firebase Firestore
     FirebaseFirestore.instance
         .collection('Users')
         .doc(widget.userId)
         .get()
         .then((DocumentSnapshot documentSnapshot) {
-      print(widget.userId);
       if (documentSnapshot.exists) {
         setState(() {
           Map<String, dynamic> data =
               documentSnapshot.data() as Map<String, dynamic>;
           userName = data['first_last_name'] as String;
           description = data['about'] as String;
-          print('username' + userName);
         });
       }
     });
@@ -47,7 +45,7 @@ class _ProfilePageGuestState extends State<ProfilePageGuest> {
       body: Center(
         child: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               CircleAvatar(
                 radius: 60,
@@ -71,6 +69,69 @@ class _ProfilePageGuestState extends State<ProfilePageGuest> {
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14),
                 ),
+              ),
+              SizedBox(height: 20),
+              Text(
+                "Proprietés de l'utilisateur",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 10),
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('property')
+                    .where('id_owner',
+                        isEqualTo: FirebaseFirestore.instance.doc('Users/$id'))
+                    .snapshots(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (!snapshot.hasData) {
+                    return CircularProgressIndicator();
+                  }
+                  final announces = snapshot.data!.docs;
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: announces.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final announce = announces[index];
+                      return Container(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 200,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                image: DecorationImage(
+                                  image: NetworkImage(
+                                      announce['imageUrl1'] as String),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              announce['property_name'] as String,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              announce['description'] as String,
+                              style: TextStyle(fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ],
           ),

@@ -290,7 +290,7 @@ class _AnnouncePageState extends State<AnnouncePage>
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.fromLTRB(100, 0, 20, 0),
+                            padding: EdgeInsets.only(left: 0),
                             child: InkWell(
                               onTap: () {
                                 Navigator.push(
@@ -303,9 +303,10 @@ class _AnnouncePageState extends State<AnnouncePage>
                               },
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   CircleAvatar(
-                                    radius: 25,
+                                    radius: 15,
                                     backgroundImage: NetworkImage(
                                       'https://www.pngitem.com/pimgs/m/504-5040528_empty-profile-picture-png-transparent-png.png',
                                     ),
@@ -315,7 +316,7 @@ class _AnnouncePageState extends State<AnnouncePage>
                                     child: Text(
                                       ownerAccountName,
                                       style: TextStyle(
-                                          fontSize: 14,
+                                          fontSize: 12,
                                           fontWeight: FontWeight.bold),
                                     ),
                                   ),
