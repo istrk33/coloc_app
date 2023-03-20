@@ -453,9 +453,12 @@ class _AnnouncePageState extends State<AnnouncePage>
                                 .instance
                                 .collection('application');
                             await collectionApplication.add({
+                              'date': DateTime.now(),
                               'id_candidate': userRef,
-                              'id_announce': announceIdFromFunction,
-                              'description': _descriptionController.text
+                              'id_announce':
+                                  '/announce/' + announceIdFromFunction,
+                              'description': _descriptionController.text,
+                              'state': 'pending'
                             });
                             Navigator.pop(context);
                             showDialog(
