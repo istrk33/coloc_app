@@ -179,7 +179,7 @@ class HomeTenant extends StatelessWidget {
             },
           );
         } else {
-          return Text("Aucunes annonces disponible");
+          return Text("Aucune annonce disponible");
         }
       },
     );

@@ -185,120 +185,161 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                     icon: Icon(Icons.publish),
                                                     color: Colors.green,
                                                     onPressed: () async {
-                                                      showModalBottomSheet(
-                                                        isScrollControlled: true,
-                                                        context: context,
-                                                        builder: (BuildContext context) {
-                                                          return StatefulBuilder(
-                                                            builder: (BuildContext context, StateSetter setState) {
-                                                              return Stack(
-                                                                children: [
-                                                                  SingleChildScrollView(
-                                                                    child: Padding(
-                                                                      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-                                                                      child: Container(
-                                                                        padding: const EdgeInsets.all(20),
-                                                                        child: Form(
-                                                                          key: _formKey,
-                                                                          child: Column(
-                                                                            mainAxisSize: MainAxisSize.min,
-                                                                            children: [
-                                                                              Text(
-                                                                                "Publier une annonce pour ${doc['property_name']}",
-                                                                                style: TextStyle(
-                                                                                  fontSize: 20,
-                                                                                  fontWeight: FontWeight.bold,
-                                                                                ),
-                                                                              ),
-                                                                              TextFormField(
-                                                                                controller: _depositAmountController,
-                                                                                keyboardType: TextInputType.number,
-                                                                                decoration: const InputDecoration(
-                                                                                    labelText: 'Caution',
-                                                                                    suffixIcon: Icon(
-                                                                                      Icons.euro_sharp,
-                                                                                    )),
-                                                                                validator: (value) {
-                                                                                  if (value!.isEmpty) {
-                                                                                    return 'Montant incorrect';
-                                                                                  }
-                                                                                  return null;
-                                                                                },
-                                                                              ),
-                                                                              TextFormField(
-                                                                                controller: _maxRoomatesController,
-                                                                                keyboardType: TextInputType.number,
-                                                                                decoration: const InputDecoration(
-                                                                                    labelText: 'Nombre de colocataire',
-                                                                                    suffixIcon: Icon(
-                                                                                      Icons.groups_sharp,
-                                                                                    )),
-                                                                                validator: (value) {
-                                                                                  if (value!.isEmpty || int.parse(value) <= 1) {
-                                                                                    return 'Valeur incorrecte';
-                                                                                  }
-                                                                                  return null;
-                                                                                },
-                                                                              ),
-                                                                              TextFormField(
-                                                                                controller: _priceController,
-                                                                                keyboardType: TextInputType.number,
-                                                                                decoration: const InputDecoration(
-                                                                                  suffixIcon: Icon(
-                                                                                    Icons.euro_sharp,
-                                                                                  ),
-                                                                                  labelText: 'Loyer',
-                                                                                ),
-                                                                                validator: (value) {
-                                                                                  if (value!.isEmpty) {
-                                                                                    return 'Montant incorrect';
-                                                                                  }
-                                                                                  return null;
-                                                                                },
-                                                                              ),
-                                                                              ElevatedButton(
-                                                                                onPressed: () async {
-                                                                                  setState(() {
-                                                                                    _isLoading = true;
-                                                                                  });
-                                                                                  if (_formKey.currentState!.validate()) {
-                                                                                    _formKey.currentState!.save();
-                                                                                    final CollectionReference<Map<String, dynamic>> propertyRef =
-                                                                                        FirebaseFirestore.instance.collection('property');
-                                                                                    final CollectionReference<Map<String, dynamic>> announceRef =
-                                                                                        FirebaseFirestore.instance.collection('announce');
+                                                      var propertyId = doc.id;
+                                                      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+                                                      final DocumentReference propertyToPublishAnnounce =
+                                                          firestore.collection('property').doc(propertyId);
 
-                                                                                    final DocumentReference<Map<String, dynamic>> property =
-                                                                                        propertyRef.doc(doc.id);
-
-                                                                                    await announceRef.add({
-                                                                                      'date_publication': DateTime.now(),
-                                                                                      'deposit_amount': _depositAmountController.text,
-                                                                                      'max_roomates': _maxRoomatesController.text,
-                                                                                      'property_id': property,
-                                                                                      'is_active': true,
-                                                                                      'price': _priceController.text,
-                                                                                      'roomate_number': 0
-                                                                                    });
-                                                                                    Navigator.pop(context);
-                                                                                  }
-                                                                                },
-                                                                                child: const Text(
-                                                                                  'Enregistrer',
-                                                                                ),
-                                                                              ),
-                                                                            ],
-                                                                          ),
-                                                                        ),
-                                                                      ),
+                                                      FirebaseFirestore.instance
+                                                          .collection('announce')
+                                                          .where('property_id', isEqualTo: propertyToPublishAnnounce)
+                                                          .get()
+                                                          .then((querySnapshot) {
+                                                        if (querySnapshot.size > 0) {
+                                                          showDialog(
+                                                            context: context,
+                                                            builder: (BuildContext context) {
+                                                              return AlertDialog(
+                                                                title: Text('Attention'),
+                                                                content: Text(
+                                                                  'Vous avez déjà une annonce pour cette propriété !',
+                                                                ),
+                                                                actions: [
+                                                                  ElevatedButton(
+                                                                    child: Text('Compris'),
+                                                                    style: ButtonStyle(
+                                                                      backgroundColor:
+                                                                          MaterialStateProperty.all<Color>(Color.fromARGB(255, 222, 218, 218)),
+                                                                      foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
                                                                     ),
+                                                                    onPressed: () {
+                                                                      Navigator.of(context).pop();
+                                                                    },
                                                                   ),
                                                                 ],
                                                               );
                                                             },
                                                           );
-                                                        },
-                                                      );
+                                                        } else {
+                                                          showModalBottomSheet(
+                                                            isScrollControlled: true,
+                                                            context: context,
+                                                            builder: (BuildContext context) {
+                                                              // si annonce déja existante, afficher dialog pour dire que annonce deja existante pour la propriete
+                                                              return StatefulBuilder(
+                                                                builder: (BuildContext context, StateSetter setState) {
+                                                                  return Stack(
+                                                                    children: [
+                                                                      SingleChildScrollView(
+                                                                        child: Padding(
+                                                                          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                                                                          child: Container(
+                                                                            padding: const EdgeInsets.all(20),
+                                                                            child: Form(
+                                                                              key: _formKey,
+                                                                              child: Column(
+                                                                                mainAxisSize: MainAxisSize.min,
+                                                                                children: [
+                                                                                  Text(
+                                                                                    "Publier une annonce pour ${doc['property_name']}",
+                                                                                    style: TextStyle(
+                                                                                      fontSize: 20,
+                                                                                      fontWeight: FontWeight.bold,
+                                                                                    ),
+                                                                                  ),
+                                                                                  TextFormField(
+                                                                                    controller: _depositAmountController,
+                                                                                    keyboardType: TextInputType.number,
+                                                                                    decoration: const InputDecoration(
+                                                                                        labelText: 'Caution',
+                                                                                        suffixIcon: Icon(
+                                                                                          Icons.euro_sharp,
+                                                                                        )),
+                                                                                    validator: (value) {
+                                                                                      if (value!.isEmpty) {
+                                                                                        return 'Montant incorrect';
+                                                                                      }
+                                                                                      return null;
+                                                                                    },
+                                                                                  ),
+                                                                                  TextFormField(
+                                                                                    controller: _maxRoomatesController,
+                                                                                    keyboardType: TextInputType.number,
+                                                                                    decoration: const InputDecoration(
+                                                                                        labelText: 'Nombre de colocataire',
+                                                                                        suffixIcon: Icon(
+                                                                                          Icons.groups_sharp,
+                                                                                        )),
+                                                                                    validator: (value) {
+                                                                                      if (value!.isEmpty || int.parse(value) <= 1) {
+                                                                                        return 'Valeur incorrecte';
+                                                                                      }
+                                                                                      return null;
+                                                                                    },
+                                                                                  ),
+                                                                                  TextFormField(
+                                                                                    controller: _priceController,
+                                                                                    keyboardType: TextInputType.number,
+                                                                                    decoration: const InputDecoration(
+                                                                                      suffixIcon: Icon(
+                                                                                        Icons.euro_sharp,
+                                                                                      ),
+                                                                                      labelText: 'Loyer',
+                                                                                    ),
+                                                                                    validator: (value) {
+                                                                                      if (value!.isEmpty) {
+                                                                                        return 'Montant incorrect';
+                                                                                      }
+                                                                                      return null;
+                                                                                    },
+                                                                                  ),
+                                                                                  ElevatedButton(
+                                                                                    onPressed: () async {
+                                                                                      setState(() {
+                                                                                        _isLoading = true;
+                                                                                      });
+                                                                                      if (_formKey.currentState!.validate()) {
+                                                                                        _formKey.currentState!.save();
+                                                                                        final CollectionReference<Map<String, dynamic>> propertyRef =
+                                                                                            FirebaseFirestore.instance.collection('property');
+                                                                                        final CollectionReference<Map<String, dynamic>> announceRef =
+                                                                                            FirebaseFirestore.instance.collection('announce');
+
+                                                                                        final DocumentReference<Map<String, dynamic>> property =
+                                                                                            propertyRef.doc(doc.id);
+
+                                                                                        await announceRef.add({
+                                                                                          'date_publication': DateTime.now(),
+                                                                                          'deposit_amount': _depositAmountController.text,
+                                                                                          'max_roomates': _maxRoomatesController.text,
+                                                                                          'property_id': property,
+                                                                                          'is_active': true,
+                                                                                          'price': _priceController.text,
+                                                                                          'roomate_number': 0
+                                                                                        });
+                                                                                        Navigator.pop(context);
+                                                                                      }
+                                                                                    },
+                                                                                    child: const Text(
+                                                                                      'Enregistrer',
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  );
+                                                                },
+                                                              );
+                                                            },
+                                                          );
+                                                        }
+                                                      }).catchError((error) {
+                                                        print('Failed to get object: $error');
+                                                      });
                                                       setState(() {
                                                         _isLoading = false;
                                                       });
@@ -570,7 +611,7 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                                   });
                                                                                   if (_formKey.currentState!.validate()) {
                                                                                     _formKey.currentState!.save();
-                                                                                    String address = newAddress+ " " +newCity;
+                                                                                    String address = newAddress + " " + newCity;
                                                                                     String url =
                                                                                         "https://api-adresse.data.gouv.fr/search/?q=${address.replaceAll(" ", "+").replaceAll(",", "")}&limit=1";
                                                                                     await fetchData(url, "requestType");
@@ -706,21 +747,62 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                                                                   final FirebaseFirestore firestore = FirebaseFirestore.instance;
                                                                   final DocumentReference propertyToDelete =
                                                                       firestore.collection('property').doc(toDeleteId);
-                                                                  await propertyToDelete.delete();
-                                                                  Navigator.of(context).pop();
 
-                                                                  if ((doc['imageUrl1'] as String) != "") {
-                                                                    final ref = FirebaseStorage.instance.refFromURL((doc['imageUrl1'] as String));
-                                                                    await ref.delete();
-                                                                  }
-                                                                  if ((doc['imageUrl2'] as String) != "") {
-                                                                    final ref = FirebaseStorage.instance.refFromURL((doc['imageUrl2'] as String));
-                                                                    await ref.delete();
-                                                                  }
-                                                                  if ((doc['imageUrl3'] as String) != "") {
-                                                                    final ref = FirebaseStorage.instance.refFromURL((doc['imageUrl3'] as String));
-                                                                    await ref.delete();
-                                                                  }
+                                                                  FirebaseFirestore.instance
+                                                                      .collection('announce')
+                                                                      .where('property_id', isEqualTo: propertyToDelete)
+                                                                      .get()
+                                                                      .then((querySnapshot) {
+                                                                    DocumentSnapshot documentSnapshot = querySnapshot.docs[0];
+                                                                    print(documentSnapshot["price"]);
+                                                                    if (documentSnapshot['roomate_number'] > 0) {
+                                                                      showDialog(
+                                                                        context: context,
+                                                                        builder: (BuildContext context) {
+                                                                          return AlertDialog(
+                                                                            title: Text('Attention'),
+                                                                            content: Text(
+                                                                              'Vous ne pouvez pas supprimer cette propriété, elle loge au moins un colocataire !',
+                                                                            ),
+                                                                            actions: [
+                                                                              ElevatedButton(
+                                                                                child: Text('Compris'),
+                                                                                style: ButtonStyle(
+                                                                                  backgroundColor: MaterialStateProperty.all<Color>(
+                                                                                      Color.fromARGB(255, 222, 218, 218)),
+                                                                                  foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                                                                                ),
+                                                                                onPressed: () {
+                                                                                  Navigator.of(context).pop();
+                                                                                },
+                                                                              ),
+                                                                            ],
+                                                                          );
+                                                                        },
+                                                                      );
+                                                                    } else {
+                                                                      final DocumentReference announceToDelete =
+                                                                          firestore.collection('announce').doc(documentSnapshot.id);
+                                                                      announceToDelete.delete();
+                                                                      propertyToDelete.delete();
+
+                                                                      if ((doc['imageUrl1'] as String) != "") {
+                                                                        final ref = FirebaseStorage.instance.refFromURL((doc['imageUrl1'] as String));
+                                                                        ref.delete();
+                                                                      }
+                                                                      if ((doc['imageUrl2'] as String) != "") {
+                                                                        final ref = FirebaseStorage.instance.refFromURL((doc['imageUrl2'] as String));
+                                                                        ref.delete();
+                                                                      }
+                                                                      if ((doc['imageUrl3'] as String) != "") {
+                                                                        final ref = FirebaseStorage.instance.refFromURL((doc['imageUrl3'] as String));
+                                                                        ref.delete();
+                                                                      }
+                                                                      Navigator.of(context).pop();
+                                                                    }
+                                                                  }).catchError((error) {
+                                                                    print('Failed to get object: $error');
+                                                                  });
                                                                 },
                                                               ),
                                                               ElevatedButton(
@@ -784,345 +866,348 @@ class _HomeOwnerState extends State<HomeOwner> with TickerProviderStateMixin {
                               // récupère les données du snapshot
                               final data = propertiesSnapshot.data!.docs;
                               final propertyIds = data.map((doc) => FirebaseFirestore.instance.collection('property').doc(doc.id)).toList();
+                              if (propertyIds.length > 0) {
+                                return StreamBuilder<QuerySnapshot>(
+                                  stream: FirebaseFirestore.instance.collection('announce').where('property_id', whereIn: propertyIds).snapshots(),
+                                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> announceSnapshot) {
+                                    if (announceSnapshot.hasError) {
+                                      return Text('Une erreur est survenue : ${announceSnapshot.error}');
+                                    }
 
-                              return StreamBuilder<QuerySnapshot>(
-                                stream: FirebaseFirestore.instance.collection('announce').where('property_id', whereIn: propertyIds).snapshots(),
-                                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> announceSnapshot) {
-                                  if (announceSnapshot.hasError) {
-                                    return Text('Une erreur est survenue : ${announceSnapshot.error}');
-                                  }
+                                    if (!announceSnapshot.hasData) {
+                                      return Text('Aucune annonce trouvée !');
+                                    }
 
-                                  if (!announceSnapshot.hasData) {
-                                    return Text('Aucune annonce trouvée !');
-                                  }
+                                    // récupère les données du snapshot d'annonce
+                                    final announceData = announceSnapshot.data!.docs;
 
-                                  // récupère les données du snapshot d'annonce
-                                  final announceData = announceSnapshot.data!.docs;
-
-                                  return ListView.builder(
-                                    itemCount: announceData.length,
-                                    itemBuilder: (BuildContext context, int index) {
-                                      final document = announceData[index];
-                                      return FutureBuilder<DocumentSnapshot>(
-                                        future: document['property_id'].get(),
-                                        builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                                          if (snapshot.connectionState == ConnectionState.done) {
-                                            final correspondingProperty = snapshot.data!;
-                                            return Column(
-                                              children: [
-                                                SizedBox(
-                                                  height: 10,
-                                                ),
-                                                ListTile(
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(10),
-                                                    side: BorderSide(color: Colors.grey),
+                                    return ListView.builder(
+                                      itemCount: announceData.length,
+                                      itemBuilder: (BuildContext context, int index) {
+                                        final document = announceData[index];
+                                        return FutureBuilder<DocumentSnapshot>(
+                                          future: document['property_id'].get(),
+                                          builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                                            if (snapshot.connectionState == ConnectionState.done) {
+                                              final correspondingProperty = snapshot.data!;
+                                              return Column(
+                                                children: [
+                                                  SizedBox(
+                                                    height: 10,
                                                   ),
-                                                  contentPadding: EdgeInsets.all(0),
-                                                  leading: Image.network(
-                                                    (correspondingProperty['imageUrl1'] as String),
-                                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                                      return Image.asset('assets/images/placeholder.jpg');
-                                                    },
-                                                    width: 50,
-                                                    height: 50,
-                                                  ),
-                                                  title: Text.rich(
-                                                    TextSpan(
-                                                      children: [
-                                                        WidgetSpan(
-                                                          alignment: PlaceholderAlignment.middle,
-                                                          baseline: TextBaseline.alphabetic,
-                                                          child: Icon(Icons.house),
-                                                        ),
-                                                        TextSpan(
-                                                          text: correspondingProperty['property_name'],
-                                                        ),
-                                                      ],
+                                                  ListTile(
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(10),
+                                                      side: BorderSide(color: Colors.grey),
                                                     ),
-                                                    textAlign: TextAlign.center,
-                                                  ),
-                                                  subtitle: Container(
-                                                    child: Column(
-                                                      children: [
-                                                        Row(
-                                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                          children: [
-                                                            Column(
-                                                              children: [
-                                                                Icon(Icons.credit_card),
-                                                                Text("${announceData[index]['price']}€"),
-                                                              ],
-                                                            ),
-                                                            Column(
-                                                              children: [
-                                                                Icon(Icons.credit_score_sharp),
-                                                                Text("${announceData[index]['deposit_amount']}€"),
-                                                              ],
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        Row(
-                                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                          children: [
-                                                            Switch(
-                                                              value: announceData[index]['is_active'],
-                                                              onChanged: (value) {
-                                                                setState(
-                                                                  () {
-                                                                    FirebaseFirestore.instance
-                                                                        .collection('announce')
-                                                                        .doc(announceData[index].id)
-                                                                        .update({
-                                                                          'is_active': !announceData[index]['is_active'],
-                                                                        })
-                                                                        .then((_) => print('Mise à jour réussie'))
-                                                                        .catchError((error) => print('Erreur de mise à jour: $error'));
-                                                                  },
-                                                                );
-                                                              },
-                                                              activeColor: MyTheme.blue1,
-                                                              inactiveThumbColor: Colors.grey,
-                                                              inactiveTrackColor: Colors.grey[300],
-                                                              activeTrackColor: MyTheme.blue4,
-                                                            ),
-                                                            IconButton(
-                                                              icon: Icon(
-                                                                Icons.edit,
-                                                                color: MyTheme.blue3,
+                                                    contentPadding: EdgeInsets.all(0),
+                                                    leading: Image.network(
+                                                      (correspondingProperty['imageUrl1'] as String),
+                                                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                        return Image.asset('assets/images/placeholder.jpg');
+                                                      },
+                                                      width: 50,
+                                                      height: 50,
+                                                    ),
+                                                    title: Text.rich(
+                                                      TextSpan(
+                                                        children: [
+                                                          WidgetSpan(
+                                                            alignment: PlaceholderAlignment.middle,
+                                                            baseline: TextBaseline.alphabetic,
+                                                            child: Icon(Icons.house),
+                                                          ),
+                                                          TextSpan(
+                                                            text: correspondingProperty['property_name'],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      textAlign: TextAlign.center,
+                                                    ),
+                                                    subtitle: Container(
+                                                      child: Column(
+                                                        children: [
+                                                          Row(
+                                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                            children: [
+                                                              Column(
+                                                                children: [
+                                                                  Icon(Icons.credit_card),
+                                                                  Text("${announceData[index]['price']}€"),
+                                                                ],
                                                               ),
-                                                              onPressed: () async {
-                                                                // update
-                                                                var newMaxRoomates = announceData[index]['max_roomates'];
-                                                                var newDepositAmount = announceData[index]['deposit_amount'];
-                                                                var newPrice = announceData[index]['price'];
-                                                                showModalBottomSheet(
-                                                                  isScrollControlled: true,
-                                                                  context: context,
-                                                                  builder: (BuildContext context) {
-                                                                    return StatefulBuilder(
-                                                                      builder: (BuildContext context, StateSetter setState) {
-                                                                        return Stack(
-                                                                          children: [
-                                                                            SingleChildScrollView(
-                                                                              child: Padding(
-                                                                                padding:
-                                                                                    EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-                                                                                child: Container(
-                                                                                  padding: const EdgeInsets.all(20),
-                                                                                  child: Form(
-                                                                                    key: _formKey,
-                                                                                    child: Column(
-                                                                                      mainAxisSize: MainAxisSize.min,
-                                                                                      children: [
-                                                                                        Text(
-                                                                                          "Modifier l'annonce de ${correspondingProperty['property_name']}",
-                                                                                          style: TextStyle(
-                                                                                            fontSize: 20,
-                                                                                            fontWeight: FontWeight.bold,
+                                                              Column(
+                                                                children: [
+                                                                  Icon(Icons.credit_score_sharp),
+                                                                  Text("${announceData[index]['deposit_amount']}€"),
+                                                                ],
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          Row(
+                                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                            children: [
+                                                              Switch(
+                                                                value: announceData[index]['is_active'],
+                                                                onChanged: (value) {
+                                                                  setState(
+                                                                    () {
+                                                                      FirebaseFirestore.instance
+                                                                          .collection('announce')
+                                                                          .doc(announceData[index].id)
+                                                                          .update({
+                                                                            'is_active': !announceData[index]['is_active'],
+                                                                          })
+                                                                          .then((_) => print('Mise à jour réussie'))
+                                                                          .catchError((error) => print('Erreur de mise à jour: $error'));
+                                                                    },
+                                                                  );
+                                                                },
+                                                                activeColor: MyTheme.blue1,
+                                                                inactiveThumbColor: Colors.grey,
+                                                                inactiveTrackColor: Colors.grey[300],
+                                                                activeTrackColor: MyTheme.blue4,
+                                                              ),
+                                                              IconButton(
+                                                                icon: Icon(
+                                                                  Icons.edit,
+                                                                  color: MyTheme.blue3,
+                                                                ),
+                                                                onPressed: () async {
+                                                                  // update
+                                                                  var newMaxRoomates = announceData[index]['max_roomates'];
+                                                                  var newDepositAmount = announceData[index]['deposit_amount'];
+                                                                  var newPrice = announceData[index]['price'];
+                                                                  showModalBottomSheet(
+                                                                    isScrollControlled: true,
+                                                                    context: context,
+                                                                    builder: (BuildContext context) {
+                                                                      return StatefulBuilder(
+                                                                        builder: (BuildContext context, StateSetter setState) {
+                                                                          return Stack(
+                                                                            children: [
+                                                                              SingleChildScrollView(
+                                                                                child: Padding(
+                                                                                  padding: EdgeInsets.only(
+                                                                                      bottom: MediaQuery.of(context).viewInsets.bottom),
+                                                                                  child: Container(
+                                                                                    padding: const EdgeInsets.all(20),
+                                                                                    child: Form(
+                                                                                      key: _formKey,
+                                                                                      child: Column(
+                                                                                        mainAxisSize: MainAxisSize.min,
+                                                                                        children: [
+                                                                                          Text(
+                                                                                            "Modifier l'annonce de ${correspondingProperty['property_name']}",
+                                                                                            style: TextStyle(
+                                                                                              fontSize: 20,
+                                                                                              fontWeight: FontWeight.bold,
+                                                                                            ),
                                                                                           ),
-                                                                                        ),
-                                                                                        TextFormField(
-                                                                                          initialValue: newDepositAmount,
-                                                                                          keyboardType: TextInputType.number,
-                                                                                          decoration: const InputDecoration(
-                                                                                              labelText: 'Caution',
+                                                                                          TextFormField(
+                                                                                            initialValue: newDepositAmount,
+                                                                                            keyboardType: TextInputType.number,
+                                                                                            decoration: const InputDecoration(
+                                                                                                labelText: 'Caution',
+                                                                                                suffixIcon: Icon(
+                                                                                                  Icons.euro_sharp,
+                                                                                                )),
+                                                                                            validator: (value) {
+                                                                                              if (value!.isEmpty) {
+                                                                                                return 'Montant incorrect';
+                                                                                              }
+                                                                                              return null;
+                                                                                            },
+                                                                                            onChanged: (value) {
+                                                                                              newDepositAmount = value;
+                                                                                            },
+                                                                                          ),
+                                                                                          TextFormField(
+                                                                                            initialValue: newMaxRoomates,
+                                                                                            keyboardType: TextInputType.number,
+                                                                                            decoration: const InputDecoration(
+                                                                                                labelText: 'Nombre de colocataire',
+                                                                                                suffixIcon: Icon(
+                                                                                                  Icons.groups_sharp,
+                                                                                                )),
+                                                                                            validator: (value) {
+                                                                                              if (value!.isEmpty ||
+                                                                                                  int.parse(value) <
+                                                                                                      announceData[index]['roomate_number'] ||
+                                                                                                  int.parse(value) <= 1) {
+                                                                                                return 'Valeur incorrecte';
+                                                                                              }
+                                                                                              return null;
+                                                                                            },
+                                                                                            onChanged: (value) {
+                                                                                              newMaxRoomates = value;
+                                                                                            },
+                                                                                          ),
+                                                                                          TextFormField(
+                                                                                            initialValue: newPrice,
+                                                                                            keyboardType: TextInputType.number,
+                                                                                            decoration: const InputDecoration(
                                                                                               suffixIcon: Icon(
                                                                                                 Icons.euro_sharp,
-                                                                                              )),
-                                                                                          validator: (value) {
-                                                                                            if (value!.isEmpty) {
-                                                                                              return 'Montant incorrect';
-                                                                                            }
-                                                                                            return null;
-                                                                                          },
-                                                                                          onChanged: (value) {
-                                                                                            newDepositAmount = value;
-                                                                                          },
-                                                                                        ),
-                                                                                        TextFormField(
-                                                                                          initialValue: newMaxRoomates,
-                                                                                          keyboardType: TextInputType.number,
-                                                                                          decoration: const InputDecoration(
-                                                                                              labelText: 'Nombre de colocataire',
-                                                                                              suffixIcon: Icon(
-                                                                                                Icons.groups_sharp,
-                                                                                              )),
-                                                                                          validator: (value) {
-                                                                                            if (value!.isEmpty ||
-                                                                                                int.parse(value) <
-                                                                                                    announceData[index]['roomate_number'] ||
-                                                                                                int.parse(value) <= 1) {
-                                                                                              return 'Valeur incorrecte';
-                                                                                            }
-                                                                                            return null;
-                                                                                          },
-                                                                                          onChanged: (value) {
-                                                                                            newMaxRoomates = value;
-                                                                                          },
-                                                                                        ),
-                                                                                        TextFormField(
-                                                                                          initialValue: newPrice,
-                                                                                          keyboardType: TextInputType.number,
-                                                                                          decoration: const InputDecoration(
-                                                                                            suffixIcon: Icon(
-                                                                                              Icons.euro_sharp,
+                                                                                              ),
+                                                                                              labelText: 'Loyer',
                                                                                             ),
-                                                                                            labelText: 'Loyer',
+                                                                                            validator: (value) {
+                                                                                              if (value!.isEmpty) {
+                                                                                                return 'Montant incorrect';
+                                                                                              }
+                                                                                              return null;
+                                                                                            },
+                                                                                            onChanged: (value) {
+                                                                                              newPrice = value;
+                                                                                            },
                                                                                           ),
-                                                                                          validator: (value) {
-                                                                                            if (value!.isEmpty) {
-                                                                                              return 'Montant incorrect';
-                                                                                            }
-                                                                                            return null;
-                                                                                          },
-                                                                                          onChanged: (value) {
-                                                                                            newPrice = value;
-                                                                                          },
-                                                                                        ),
-                                                                                        ElevatedButton(
-                                                                                          onPressed: () async {
-                                                                                            setState(() {
-                                                                                              _isLoading = true;
-                                                                                            });
-                                                                                            if (_formKey.currentState!.validate()) {
-                                                                                              _formKey.currentState!.save();
-                                                                                              FirebaseFirestore.instance
-                                                                                                  .collection('announce')
-                                                                                                  .doc(announceData[index].id)
-                                                                                                  .update({
-                                                                                                    'max_roomates': newMaxRoomates,
-                                                                                                    'price': newPrice,
-                                                                                                    'deposit_amount': newDepositAmount,
-                                                                                                  })
-                                                                                                  .then((_) => print('Mise à jour réussie'))
-                                                                                                  .catchError((error) =>
-                                                                                                      print('Erreur de mise à jour: $error'));
-                                                                                              Navigator.pop(context);
-                                                                                            }
-                                                                                          },
-                                                                                          child: const Text(
-                                                                                            'Enregistrer',
+                                                                                          ElevatedButton(
+                                                                                            onPressed: () async {
+                                                                                              setState(() {
+                                                                                                _isLoading = true;
+                                                                                              });
+                                                                                              if (_formKey.currentState!.validate()) {
+                                                                                                _formKey.currentState!.save();
+                                                                                                FirebaseFirestore.instance
+                                                                                                    .collection('announce')
+                                                                                                    .doc(announceData[index].id)
+                                                                                                    .update({
+                                                                                                      'max_roomates': newMaxRoomates,
+                                                                                                      'price': newPrice,
+                                                                                                      'deposit_amount': newDepositAmount,
+                                                                                                    })
+                                                                                                    .then((_) => print('Mise à jour réussie'))
+                                                                                                    .catchError((error) =>
+                                                                                                        print('Erreur de mise à jour: $error'));
+                                                                                                Navigator.pop(context);
+                                                                                              }
+                                                                                            },
+                                                                                            child: const Text(
+                                                                                              'Enregistrer',
+                                                                                            ),
                                                                                           ),
-                                                                                        ),
-                                                                                      ],
+                                                                                        ],
+                                                                                      ),
                                                                                     ),
                                                                                   ),
                                                                                 ),
                                                                               ),
+                                                                            ],
+                                                                          );
+                                                                        },
+                                                                      );
+                                                                    },
+                                                                  );
+                                                                },
+                                                              ),
+                                                              IconButton(
+                                                                icon: Icon(
+                                                                  Icons.delete,
+                                                                  color: Colors.red,
+                                                                ),
+                                                                onPressed: () {
+                                                                  if (announceData[index]['roomate_number'] > 0) {
+                                                                    showDialog(
+                                                                      context: context,
+                                                                      builder: (BuildContext context) {
+                                                                        return AlertDialog(
+                                                                          title: Text('Attention'),
+                                                                          content: Text(
+                                                                            'Voulez ne pouvez pas supprimer cette annonce !',
+                                                                          ),
+                                                                          actions: [
+                                                                            ElevatedButton(
+                                                                              child: Text('Compris'),
+                                                                              style: ButtonStyle(
+                                                                                backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                                                                                foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                                                                              ),
+                                                                              onPressed: () {
+                                                                                Navigator.of(context).pop();
+                                                                              },
                                                                             ),
                                                                           ],
                                                                         );
                                                                       },
                                                                     );
-                                                                  },
-                                                                );
-                                                              },
-                                                            ),
-                                                            IconButton(
-                                                              icon: Icon(
-                                                                Icons.delete,
-                                                                color: Colors.red,
-                                                              ),
-                                                              onPressed: () {
-                                                                if (announceData[index]['roomate_number'] > 0) {
-                                                                  showDialog(
-                                                                    context: context,
-                                                                    builder: (BuildContext context) {
-                                                                      return AlertDialog(
-                                                                        title: Text('Attention'),
-                                                                        content: Text(
-                                                                          'Voulez ne pouvez pas supprimer cette annonce !',
-                                                                        ),
-                                                                        actions: [
-                                                                          ElevatedButton(
-                                                                            child: Text('Compris'),
-                                                                            style: ButtonStyle(
-                                                                              backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                                                                              foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
-                                                                            ),
-                                                                            onPressed: () {
-                                                                              Navigator.of(context).pop();
-                                                                            },
+                                                                  } else {
+                                                                    showDialog(
+                                                                      context: context,
+                                                                      builder: (BuildContext context) {
+                                                                        return AlertDialog(
+                                                                          title: Text('Attention'),
+                                                                          content: Text(
+                                                                            'Voulez vous supprimer cette annonce ?',
                                                                           ),
-                                                                        ],
-                                                                      );
-                                                                    },
-                                                                  );
-                                                                } else {
-                                                                  showDialog(
-                                                                    context: context,
-                                                                    builder: (BuildContext context) {
-                                                                      return AlertDialog(
-                                                                        title: Text('Attention'),
-                                                                        content: Text(
-                                                                          'Voulez vous supprimer cette annonce ?',
-                                                                        ),
-                                                                        actions: [
-                                                                          ElevatedButton(
-                                                                            style: ButtonStyle(
-                                                                              backgroundColor: MaterialStateProperty.all<Color>(
-                                                                                Colors.red,
+                                                                          actions: [
+                                                                            ElevatedButton(
+                                                                              style: ButtonStyle(
+                                                                                backgroundColor: MaterialStateProperty.all<Color>(
+                                                                                  Colors.red,
+                                                                                ),
                                                                               ),
+                                                                              child: Text('Oui'),
+                                                                              onPressed: () async {
+                                                                                var toDeleteId = announceData[index].id;
+                                                                                final FirebaseFirestore firestore = FirebaseFirestore.instance;
+                                                                                final DocumentReference propertyToDelete =
+                                                                                    firestore.collection('announce').doc(toDeleteId);
+                                                                                await propertyToDelete.delete();
+                                                                                Navigator.of(context).pop();
+                                                                              },
                                                                             ),
-                                                                            child: Text('Oui'),
-                                                                            onPressed: () async {
-                                                                              var toDeleteId = announceData[index].id;
-                                                                              final FirebaseFirestore firestore = FirebaseFirestore.instance;
-                                                                              final DocumentReference propertyToDelete =
-                                                                                  firestore.collection('announce').doc(toDeleteId);
-                                                                              await propertyToDelete.delete();
-                                                                              Navigator.of(context).pop();
-                                                                            },
-                                                                          ),
-                                                                          ElevatedButton(
-                                                                            child: Text('Non'),
-                                                                            style: ButtonStyle(
-                                                                              backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                                                                              foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                                                                            ElevatedButton(
+                                                                              child: Text('Non'),
+                                                                              style: ButtonStyle(
+                                                                                backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                                                                                foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                                                                              ),
+                                                                              onPressed: () {
+                                                                                Navigator.of(context).pop();
+                                                                              },
                                                                             ),
-                                                                            onPressed: () {
-                                                                              Navigator.of(context).pop();
-                                                                            },
-                                                                          ),
-                                                                        ],
-                                                                      );
-                                                                    },
-                                                                  );
-                                                                }
-                                                              },
-                                                            ),
-                                                          ],
+                                                                          ],
+                                                                        );
+                                                                      },
+                                                                    );
+                                                                  }
+                                                                },
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    onTap: () {
+                                                      // afficher liste de colocataire
+                                                    },
+                                                    trailing: Column(
+                                                      children: [
+                                                        Icon(Icons.groups),
+                                                        Container(
+                                                          padding: EdgeInsets.all(5),
+                                                          child: Text(
+                                                            "${announceData[index]['roomate_number']}/${announceData[index]['max_roomates']}",
+                                                          ),
                                                         ),
                                                       ],
                                                     ),
                                                   ),
-                                                  onTap: () {
-                                                    // afficher liste de colocataire
-                                                  },
-                                                  trailing: Column(
-                                                    children: [
-                                                      Icon(Icons.groups),
-                                                      Container(
-                                                        padding: EdgeInsets.all(5),
-                                                        child: Text(
-                                                          "${announceData[index]['roomate_number']}/${announceData[index]['max_roomates']}",
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            );
-                                          } else {
-                                            return SizedBox.shrink();
-                                          }
-                                        },
-                                      );
-                                    },
-                                  );
-                                },
-                              );
+                                                ],
+                                              );
+                                            } else {
+                                              return SizedBox.shrink();
+                                            }
+                                          },
+                                        );
+                                      },
+                                    );
+                                  },
+                                );
+                              } else {
+                                return Text("Aucune donnée");
+                              }
                             },
                           ),
                         ),
