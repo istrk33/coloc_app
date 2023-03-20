@@ -12,6 +12,7 @@ class TextFieldWidget extends StatefulWidget {
     required this.label,
     required this.text,
     required this.onChanged,
+    required TextEditingController controller,
   }) : super(key: key);
 
   @override
@@ -56,7 +57,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
         ],
       );
 
- String getTextFieldValue() {
-  return controller.text;
- }
+  String getTextFieldValue() {
+    return controller.text;
+  }
 }
