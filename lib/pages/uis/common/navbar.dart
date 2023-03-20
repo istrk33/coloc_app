@@ -25,7 +25,7 @@ class _NavbarState extends State<Navbar> {
   int _selectedIndex = 0;
   final List<GButton> menuItemsColoc = [
     const GButton(
-      icon: Icons.home,
+      icon: Icons.search,
       text: 'Home',
     ),
     const GButton(
@@ -33,8 +33,8 @@ class _NavbarState extends State<Navbar> {
       text: 'Carte',
     ),
     const GButton(
-      icon: Icons.chat_bubble,
-      text: 'Messagerie',
+      icon: Icons.home,
+      text: 'Logement',
     ),
     const GButton(
       icon: Icons.people,

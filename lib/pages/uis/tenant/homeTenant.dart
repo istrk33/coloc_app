@@ -213,7 +213,7 @@ class HomeTenant extends StatelessWidget {
       });
     }
 
-    print(combinedData);
+    // print(combinedData);
     return combinedData;
   }
 }
