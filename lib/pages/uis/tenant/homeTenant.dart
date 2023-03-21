@@ -1,5 +1,5 @@
 import 'package:coloc_app/pages/uis/common/profile.dart';
-import 'package:coloc_app/pages/uis/common/announce_page.dart';
+import 'package:coloc_app/pages/uis/tenant/announce_page.dart';
 import 'package:coloc_app/themes/color.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

@@ -16,41 +16,23 @@ class Application extends StatefulWidget {
 }
 
 class _Application extends State<Application> {
-  String userName = "";
-  String description = "";
   String id = "";
 
   void initState() {
     id = currentUser!.uid;
     super.initState();
-    FirebaseFirestore.instance
-        .collection('Users')
-        .doc(id)
-        .get()
-        .then((DocumentSnapshot documentSnapshot) {
-      if (documentSnapshot.exists) {
-        setState(() {
-          Map<String, dynamic> data =
-              documentSnapshot.data() as Map<String, dynamic>;
-          userName = data['first_last_name'] as String;
-          description = data['about'] as String;
-        });
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     // Material App
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      // Scaffold Widget
-      home: Scaffold(
-          body: Applications()));
+        debugShowCheckedModeBanner: false,
+        // Scaffold Widget
+        home: Scaffold(body: Applications()));
   }
 
   Widget Applications() {
-    print(id);
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -93,6 +75,8 @@ class _Application extends State<Application> {
                           propertySnapshot.data() as Map<String, dynamic>;
 
                       data.add({
+                        'id_announce': application['id_announce'].id as String,
+                        'id_property': announceData['property_id'],
                         'imageUrl1': propertyData['imageUrl1'] as String,
                         'property_name':
                             propertyData['property_name'] as String,
@@ -116,6 +100,18 @@ class _Application extends State<Application> {
                           itemCount: data.length,
                           itemBuilder: (BuildContext context, int index) {
                             final propertyData = data[index];
+                            String state = propertyData['state'] as String;
+                            String stateText;
+
+                            if (state == 'pending') {
+                              stateText = 'En attente';
+                            } else if (state == 'accepted') {
+                              stateText = 'Accepté';
+                            } else if (state == 'rejected') {
+                              stateText = 'Rejeté';
+                            } else {
+                              stateText = 'Inconnu';
+                            }
                             return InkWell(
                               child: Container(
                                 padding: EdgeInsets.only(
@@ -165,16 +161,14 @@ class _Application extends State<Application> {
                                             ),
                                           ),
                                           Text(
-                                            propertyData['state'] as String,
+                                            stateText,
                                             style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,
-                                              color: propertyData['state'] ==
-                                                      'pending'
+                                              color: stateText == 'En attente'
                                                   ? Color.fromARGB(
                                                       255, 19, 96, 154)
-                                                  : propertyData['state'] ==
-                                                          'accepted'
+                                                  : stateText == 'Accepté'
                                                       ? Colors.green
                                                       : Colors
                                                           .red, // sinon, la couleur sera rouge
@@ -191,8 +185,10 @@ class _Application extends State<Application> {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) => HouseShare(
-                                          /* announceId: snapshot.data![index]['announceId'],*/
-                                          ),
+                                        idProperty: propertyData['id_property'],
+                                        idAnnounce: propertyData['id_announce'],
+                                        /* announceId: snapshot.data![index]['announceId'],*/
+                                      ),
                                     ),
                                   );
                                 }
