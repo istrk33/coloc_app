@@ -1,5 +1,7 @@
 # coloc_app
 
+![simpleLogo](https://user-images.githubusercontent.com/76879157/226761837-e970231d-7395-46ae-8594-324c95bf1970.png)
+
 A new Flutter project.
 
 ## Getting Started
