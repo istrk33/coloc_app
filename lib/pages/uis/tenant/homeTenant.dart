@@ -7,8 +7,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class HomeTenant extends StatelessWidget {
-  final CollectionReference announceCollection = FirebaseFirestore.instance.collection('announce');
-  final CollectionReference propertyCollection = FirebaseFirestore.instance.collection('property');
+  final CollectionReference announceCollection =
+      FirebaseFirestore.instance.collection('announce');
+  final CollectionReference propertyCollection =
+      FirebaseFirestore.instance.collection('property');
   List<Map<String, dynamic>> propertyList = [];
 
   HomeTenant({Key? key}) : super(key: key);
@@ -25,7 +27,8 @@ class HomeTenant extends StatelessWidget {
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-          snapshot.data!.sort((a, b) => b['announceDate'].compareTo(a['announceDate']));
+          snapshot.data!
+              .sort((a, b) => b['announceDate'].compareTo(a['announceDate']));
           return ListView.builder(
             itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
@@ -115,8 +118,8 @@ class HomeTenant extends StatelessWidget {
                         margin: const EdgeInsets.fromLTRB(150, 120, 0, 0),
                         alignment: Alignment.centerRight,
                         child: Text(
-                          property['propertyDescription'].length > 200
-                              ? '${'-' + property['propertyDescription'].substring(0, 200)}...'
+                          property['propertyDescription'].length > 160
+                              ? '${'-' + property['propertyDescription'].substring(0, 160)}...'
                               : property['propertyDescription'],
                           style: const TextStyle(
                             color: Colors.black,
@@ -144,7 +147,9 @@ class HomeTenant extends StatelessWidget {
                         ),
                         alignment: Alignment.bottomLeft,
                         child: Text(
-                          timeago.format(date.toDate(), locale: locale).toString(),
+                          timeago
+                              .format(date.toDate(), locale: locale)
+                              .toString(),
                           style: const TextStyle(
                             color: Color.fromARGB(
                               255,
@@ -164,7 +169,8 @@ class HomeTenant extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) => AnnouncePage(
                         announceId: snapshot.data![index]['announceId'],
-                        announceTitle: snapshot.data![index]['propertyName'].toString(),
+                        announceTitle:
+                            snapshot.data![index]['propertyName'].toString(),
                       ),
                     ),
                   );
@@ -180,22 +186,26 @@ class HomeTenant extends StatelessWidget {
   }
 
   Future<List<Map<String, dynamic>>> getAnnounceWithProperty() async {
-    QuerySnapshot<Object?> announceSnap = await announceCollection.where('is_active', isEqualTo: true).get();
-    List propertyIds = announceSnap.docs.map((doc) => doc['property_id']).toList();
+    QuerySnapshot<Object?> announceSnap =
+        await announceCollection.where('is_active', isEqualTo: true).get();
+    List propertyIds =
+        announceSnap.docs.map((doc) => doc['property_id']).toList();
 
-    QuerySnapshot<Map<String, dynamic>> propertySnap =
-        await propertyCollection.where(FieldPath.documentId, whereIn: propertyIds).get() as QuerySnapshot<Map<String, dynamic>>;
+    QuerySnapshot<Map<String, dynamic>> propertySnap = await propertyCollection
+        .where(FieldPath.documentId, whereIn: propertyIds)
+        .get() as QuerySnapshot<Map<String, dynamic>>;
 
     List<Map<String, dynamic>> combinedData = [];
 
     for (var i = 0; i < announceSnap.docs.length; i++) {
-      Map<String, dynamic> announceData = announceSnap.docs[i].data() as Map<String, dynamic>;
+      Map<String, dynamic> announceData =
+          announceSnap.docs[i].data() as Map<String, dynamic>;
       var propertyData = propertySnap.docs[i].data();
 
       combinedData.add({
         'announceId': announceSnap.docs[i].id,
-        'announcePrice': announceData['price'],
-        'announceDate': announceData['date_publication'],
+        'announcePrice': announceData!['price'],
+        'announceDate': announceData!['date_publication'],
         'propertyId': propertySnap.docs[i].id,
         'propertyName': propertyData['property_name'],
         'propertyDescription': propertyData['description'],

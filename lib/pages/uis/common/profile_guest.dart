@@ -62,8 +62,15 @@ class _ProfilePageGuestState extends State<ProfilePageGuest> {
                 ),
               ),
               SizedBox(height: 20),
+              Text(
+                "à propos",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.only(left:20, right: 20,bottom: 20, top: 5),
                 child: Text(
                   description,
                   textAlign: TextAlign.center,

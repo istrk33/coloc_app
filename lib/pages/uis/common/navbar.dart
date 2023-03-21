@@ -1,3 +1,4 @@
+import 'package:coloc_app/pages/uis/tenant/application.dart';
 import 'package:coloc_app/pages/uis/owner/MyAnnounce.dart';
 import 'package:coloc_app/pages/uis/owner/homeOwner.dart';
 import 'package:coloc_app/pages/uis/common/profile.dart';
@@ -50,7 +51,7 @@ class _NavbarState extends State<Navbar> {
       text: 'Profile',
     ),
   ];
-  static List<Widget> _widgetOptionsForColoc = <Widget>[HomeTenant(), MyMap(), ProfilePage(),ProfilePage()];
+  static List<Widget> _widgetOptionsForColoc = <Widget>[HomeTenant(), MyMap(), Application(),ProfilePage()];
   static List<Widget> _widgetOptionsForProp = <Widget>[HomeOwner(), MyAnnounce(), ProfilePage()];
 
   late List<GButton> _currentMenuItems;
