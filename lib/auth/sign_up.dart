@@ -543,6 +543,7 @@ class _InputSection extends State<InputSection> {
         .doc(userID)
         .set({
           'first_last_name': firstLastName,
+          'about': '',
           'birthdate': birthdate,
           'mobile_phone': mobilePhone,
           'sexe': hf,
