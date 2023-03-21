@@ -79,11 +79,6 @@ class _ProfilePageState extends State<ProfilePage> {
         text: ProfilMode._isOwnerMode ? 'Mode propriétaire' : 'Mode Colocataire',
         onClicked: () {
           ProfilMode._isOwnerMode = !ProfilMode._isOwnerMode;
-          if (ProfilMode._isOwnerMode) {
-            int _cartAmount = 3;
-            late bool _showBadge;
-            Color color = Colors.red;
-          }
           Navbar().getState()!.updateMenuItems();
         },
         icon: ProfilMode._isOwnerMode ? Icon(Icons.apartment) : Icon(Icons.payment),

@@ -50,7 +50,7 @@ class _NavbarState extends State<Navbar> {
       text: 'Profile',
     ),
   ];
-  static List<Widget> _widgetOptionsForColoc = <Widget>[HomeTenant(), MyMap(), ProfilePage()];
+  static List<Widget> _widgetOptionsForColoc = <Widget>[HomeTenant(), MyMap(), ProfilePage(),ProfilePage()];
   static List<Widget> _widgetOptionsForProp = <Widget>[HomeOwner(), MyAnnounce(), ProfilePage()];
 
   late List<GButton> _currentMenuItems;
