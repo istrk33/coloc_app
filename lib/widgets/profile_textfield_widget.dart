@@ -55,4 +55,8 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
           ),
         ],
       );
+
+ String getTextFieldValue() {
+  return controller.text;
+ }
 }

@@ -1,15 +1,12 @@
+import 'package:coloc_app/pages/uis/tenant/application.dart';
+import 'package:coloc_app/pages/uis/owner/MyAnnounce.dart';
 import 'package:coloc_app/pages/uis/owner/homeOwner.dart';
 import 'package:coloc_app/pages/uis/common/profile.dart';
 import 'package:coloc_app/themes/color.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:flutter/cupertino.dart';
 import '../tenant/homeTenant.dart';
-import 'chat.dart';
 import '../../maps/map.dart';
-import 'profile.dart';
 
 class Navbar extends StatefulWidget {
   const Navbar({Key? key}) : super(key: key);
@@ -24,7 +21,7 @@ class _NavbarState extends State<Navbar> {
   int _selectedIndex = 0;
   final List<GButton> menuItemsColoc = [
     const GButton(
-      icon: Icons.home,
+      icon: Icons.search,
       text: 'Home',
     ),
     const GButton(
@@ -32,8 +29,8 @@ class _NavbarState extends State<Navbar> {
       text: 'Carte',
     ),
     const GButton(
-      icon: Icons.chat_bubble,
-      text: 'Messagerie',
+      icon: Icons.home,
+      text: 'Logement',
     ),
     const GButton(
       icon: Icons.people,
@@ -46,32 +43,16 @@ class _NavbarState extends State<Navbar> {
       text: 'Propriétés',
     ),
     const GButton(
-      icon: Icons.monetization_on,
-      text: 'Paiements',
-    ),
-    const GButton(
-      icon: Icons.chat_bubble,
-      text: 'Messagerie',
+      icon: Icons.list_alt,
+      text: 'Mes Annonces',
     ),
     const GButton(
       icon: Icons.people,
       text: 'Profile',
     ),
   ];
-  static const TextStyle optionStyle =
-      TextStyle(fontSize: 30, fontWeight: FontWeight.w600);
-  static List<Widget> _widgetOptionsForColoc = <Widget>[
-    HomeTenant(),
-    MyMap(),
-    Chat(),
-    ProfilePage()
-  ];
-  static List<Widget> _widgetOptionsForProp = <Widget>[
-    HomeOwner(),
-    HomeTenant(),
-    Chat(),
-    ProfilePage()
-  ];
+  static List<Widget> _widgetOptionsForColoc = <Widget>[HomeTenant(), MyMap(), Application(), ProfilePage()];
+  static List<Widget> _widgetOptionsForProp = <Widget>[HomeOwner(), MyAnnounce(), ProfilePage()];
 
   late List<GButton> _currentMenuItems;
   @override
@@ -87,8 +68,14 @@ class _NavbarState extends State<Navbar> {
     setState(() {
       if (ProfilMode.getIsOwnerMode()) {
         _currentMenuItems = menuItemsProp;
+        setState(() {
+          _selectedIndex = _selectedIndex - 1;
+        });
       } else {
         _currentMenuItems = menuItemsColoc;
+        setState(() {
+          _selectedIndex = _selectedIndex + 1;
+        });
       }
     });
   }
@@ -114,8 +101,7 @@ class _NavbarState extends State<Navbar> {
           ),
           child: SafeArea(
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8),
               child: GNav(
                 rippleColor: Colors.grey[300]!,
                 hoverColor: Colors.grey[100]!,
@@ -138,9 +124,7 @@ class _NavbarState extends State<Navbar> {
           ),
         ),
         body: Center(
-          child: ProfilMode.getIsOwnerMode()
-              ? _widgetOptionsForProp.elementAt(_selectedIndex)
-              : _widgetOptionsForColoc.elementAt(_selectedIndex),
+          child: ProfilMode.getIsOwnerMode() ? _widgetOptionsForProp.elementAt(_selectedIndex) : _widgetOptionsForColoc.elementAt(_selectedIndex),
         ),
       ),
     );

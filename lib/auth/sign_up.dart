@@ -1,7 +1,9 @@
+import 'package:coloc_app/pages/uis/tenant/homeTenant.dart';
 import 'package:coloc_app/themes/color.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 //import 'package:fluttertoast/fluttertoast.dart';
 
@@ -25,6 +27,8 @@ class SignupPage extends StatelessWidget {
       ),
       child: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             textSection,
             InputSection(),
@@ -35,14 +39,16 @@ class SignupPage extends StatelessWidget {
   }
 }
 
-Widget textSection = Container(
-  margin: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-  child: Text(
-    'Créez-vous un compte',
-    style: GoogleFonts.comfortaa(
-      fontSize: 16,
-      fontWeight: FontWeight.bold,
-      color: MyTheme.blue3,
+Widget textSection = Padding(
+  padding: EdgeInsets.only(top: 10),
+  child: Container(
+    child: Text(
+      'Créez-vous un compte',
+      style: GoogleFonts.comfortaa(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: MyTheme.blue3,
+      ),
     ),
   ),
 );
@@ -91,7 +97,7 @@ class _InputSection extends State<InputSection> {
                   child: const Icon(
                     Icons.people_outline,
                     size: 25,
-                    color:MyTheme.blue3,
+                    color: MyTheme.blue3,
                   ),
                 ),
                 SizedBox(
@@ -159,7 +165,7 @@ class _InputSection extends State<InputSection> {
                         label: const Center(
                           child: Text("Adresse email"),
                         ),
-                        labelStyle: GoogleFonts.comfortaa(color:MyTheme.white),
+                        labelStyle: GoogleFonts.comfortaa(color: MyTheme.white),
                         contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
@@ -259,7 +265,7 @@ class _InputSection extends State<InputSection> {
                         label: const Center(
                           child: Text("Mot de passe"),
                         ),
-                        labelStyle: GoogleFonts.comfortaa(color:MyTheme.white),
+                        labelStyle: GoogleFonts.comfortaa(color: MyTheme.white),
                         contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
@@ -339,119 +345,179 @@ class _InputSection extends State<InputSection> {
             ),
           ),
           const SizedBox(height: 15),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Radio<Sexe>(
-                        value: Sexe.homme,
-                        groupValue: _sexe,
-                        onChanged: (Sexe? value) {
-                          setState(() {
-                            _sexe = value;
-                          });
-                        }),
-                    Expanded(
-                      child: Text(
-                        'Homme',
-                        style: TextStyle(
-                          color:MyTheme.white,
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Radio<Sexe>(
+                          value: Sexe.homme,
+                          groupValue: _sexe,
+                          onChanged: (Sexe? value) {
+                            setState(() {
+                              _sexe = value;
+                            });
+                          }),
+                      Expanded(
+                        child: Text(
+                          'Homme',
+                          style: TextStyle(
+                            color: MyTheme.white,
+                          ),
                         ),
-                      ),
-                    )
-                  ],
+                      )
+                    ],
+                  ),
+                  flex: 1,
                 ),
-                flex: 1,
-              ),
-              Expanded(
-                child: Row(
-                  children: [
-                    Radio<Sexe>(
-                        value: Sexe.femme,
-                        groupValue: _sexe,
-                        onChanged: (Sexe? value) {
-                          setState(() {
-                            _sexe = value;
-                          });
-                        }),
-                    Expanded(
-                      child: Text(
-                        'Femme',
-                        style: TextStyle(
-                          color: MyTheme.white,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Radio<Sexe>(
+                          value: Sexe.femme,
+                          groupValue: _sexe,
+                          onChanged: (Sexe? value) {
+                            setState(() {
+                              _sexe = value;
+                            });
+                          }),
+                      Expanded(
+                        child: Text(
+                          'Femme',
+                          style: TextStyle(
+                            color: MyTheme.white,
+                          ),
                         ),
-                      ),
-                    )
-                  ],
+                      )
+                    ],
+                  ),
+                  flex: 1,
                 ),
-                flex: 1,
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 15),
           SizedBox(
             height: 60,
             width: double.infinity,
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: MyTheme.white,
-                padding: const EdgeInsets.fromLTRB(10, 15, 10, 15),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(30)),
-                ),
-              ),
-              child: Text(
-                "Inscription".toUpperCase(),
-                style: const TextStyle(
-                  color: MyTheme.blue3,
-                  fontSize: 20.0,
-                ),
-              ),
-              onPressed: () {
-                signUpToFirebase();
+              onPressed: () async {
+                try {
+                  await auth
+                      .createUserWithEmailAndPassword(
+                    email: emailField.text.trim(),
+                    password: passwordField.text.trim(),
+                  )
+                      .then((value) {
+                    print(value.user!.uid);
+                    addUser(
+                      value.user!.uid,
+                      firstLastNameField.text.trim(),
+                      defaultDateTime.toString().trim(),
+                      mobileField.text.toString().trim(),
+                      (_sexe == Sexe.homme) ? true : false,
+                    );
+
+                    Fluttertoast.showToast(
+                      msg: "Inscription réussie, connexion",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: MyTheme.blue3,
+                      textColor: Colors.white,
+                      fontSize: 16.0,
+                    );
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => HomeTenant()),
+                    );
+                  });
+                } on FirebaseAuthException catch (e) {
+                  if (e.code == 'invalid-email') {
+                    Fluttertoast.showToast(
+                      msg: "Email invalide.",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0,
+                    );
+                  } else if (e.code == 'email-already-in-use') {
+                    Fluttertoast.showToast(
+                      msg: "Email déja utilisé",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0,
+                    );
+                  } else if (e.code == 'missing-email') {
+                    Fluttertoast.showToast(
+                      msg: "Veuillez saisir votre adresse mail",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0,
+                    );
+                  } else if (e.code == 'operation-not-allowed') {
+                    Fluttertoast.showToast(
+                      msg: "Not allowed",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0,
+                    );
+                  } else if (e.code == 'weak-password') {
+                    Fluttertoast.showToast(
+                      msg: "Mot de passe trop faible",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0,
+                    );return;
+                  }
+                  else {
+                    Fluttertoast.showToast(
+                      msg: "Error: ${e.code}",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0,
+                    );
+                  }
+                }
               },
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                primary: MyTheme.white,
+                elevation: 5,
+              ),
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 15),
+                width: MediaQuery.of(context).size.width,
+                child: Text(
+                  'Inscription',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.comfortaa(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: MyTheme.blue3,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
       ),
     );
-  }
-
-  void signUpToFirebase() {
-    print(emailField.text.trim());
-    print(passwordField.text.trim());
-    print(firstLastNameField.text.trim());
-    // print(birthdateField.text.trim());
-    try {
-      auth
-          .createUserWithEmailAndPassword(
-        email: emailField.text.trim(),
-        password: passwordField.text.trim(),
-      )
-          .then((value) {
-        print(value.user!.uid);
-        addUser(
-          value.user!.uid,
-          firstLastNameField.text.trim(),
-          defaultDateTime.toString().trim(),
-          mobileField.text.toString().trim(),
-          (_sexe == Sexe.homme) ? true : false,
-        );
-      });
-    } catch (e) {
-      // Fluttertoast.showToast(
-      //     msg: e.toString(),
-      //     toastLength: Toast.LENGTH_SHORT,
-      //     gravity: ToastGravity.CENTER,
-      //     timeInSecForIosWeb: 1,
-      //     backgroundColor: Colors.red,
-      //     textColor: Colors.white,
-      //     fontSize: 16.0);
-      print("SIUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU");
-      print(e.toString());
-    }
   }
 
   void _updateDate() {
@@ -477,6 +543,7 @@ class _InputSection extends State<InputSection> {
         .doc(userID)
         .set({
           'first_last_name': firstLastName,
+          'about': '',
           'birthdate': birthdate,
           'mobile_phone': mobilePhone,
           'sexe': hf,
