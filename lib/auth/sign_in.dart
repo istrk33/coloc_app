@@ -1,7 +1,10 @@
+import 'package:coloc_app/pages/uis/tenant/homeTenant.dart';
+import 'package:coloc_app/themes/color.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 FirebaseAuth auth = FirebaseAuth.instance;
 
@@ -15,9 +18,9 @@ class LoginPage extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xff2768bf),
-            Color(0xff2768bf),
-            Color(0xff6b9ee1),
+            MyTheme.blue3,
+            MyTheme.blue3,
+            MyTheme.blue2,
           ],
         ),
       ),
@@ -73,16 +76,14 @@ Widget titleSection = Container(
         style: GoogleFonts.exo(
           fontSize: 40,
           fontWeight: FontWeight.w900,
-          color: Colors.white,
+          color: MyTheme.white,
         ),
       ),
       const SizedBox(width: 3),
       Text(
         'App',
         style: GoogleFonts.exo(
-            fontSize: 40,
-            fontWeight: FontWeight.w900,
-            color: Color.fromARGB(255, 155, 188, 230)),
+            fontSize: 40, fontWeight: FontWeight.w900, color: MyTheme.blue4),
       ),
     ],
   ),
@@ -129,7 +130,7 @@ class InputSection extends StatelessWidget {
                   child: const Icon(
                     Icons.people_outline,
                     size: 25,
-                    color: Color(0xff2768bf),
+                    color: MyTheme.blue3,
                   ),
                 ),
                 SizedBox(
@@ -141,15 +142,15 @@ class InputSection extends StatelessWidget {
                       keyboardType: TextInputType.emailAddress,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.comfortaa(
-                          fontSize: 18,
-                          color: Colors.white,
+                          fontSize: 14,
+                          color: MyTheme.white,
                           fontWeight: FontWeight.bold),
                       obscureText: false,
                       decoration: InputDecoration(
                         label: const Center(
                           child: Text("Adresse email"),
                         ),
-                        labelStyle: GoogleFonts.comfortaa(color: Colors.white),
+                        labelStyle: GoogleFonts.comfortaa(color: MyTheme.white),
                         contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
@@ -175,12 +176,12 @@ class InputSection extends StatelessWidget {
                   width: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
-                    color: Colors.white,
+                    color: MyTheme.white,
                   ),
                   child: const Icon(
                     Icons.lock_outline,
                     size: 25,
-                    color: Color(0xff2768bf),
+                    color: MyTheme.blue3,
                   ),
                 ),
                 SizedBox(
@@ -191,15 +192,15 @@ class InputSection extends StatelessWidget {
                       controller: passwordField,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.comfortaa(
-                          fontSize: 18,
-                          color: Colors.white,
+                          fontSize: 14,
+                          color: MyTheme.white,
                           fontWeight: FontWeight.bold),
                       obscureText: true,
                       decoration: InputDecoration(
                         label: const Center(
                           child: Text("Mot de passe"),
                         ),
-                        labelStyle: GoogleFonts.comfortaa(color: Colors.white),
+                        labelStyle: GoogleFonts.comfortaa(color: MyTheme.white),
                         contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 20),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
@@ -215,44 +216,80 @@ class InputSection extends StatelessWidget {
             height: 60,
             width: double.infinity,
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                padding: const EdgeInsets.fromLTRB(10, 15, 10, 15),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(30)),
-                ),
-              ),
-              child: Text(
-                "Connexion".toUpperCase(),
-                style: const TextStyle(
-                  color: Color(0xff2768bf),
-                  fontSize: 20.0,
-                ),
-              ),
-              onPressed: () {
-                loginToFirebase();
+              onPressed: () async {
+                try {
+                  await auth.signInWithEmailAndPassword(
+                    email: emailField.text.trim(),
+                    password: passwordField.text.trim(),
+                  );
+                  Fluttertoast.showToast(
+                    msg: "Connecté",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: MyTheme.blue3,
+                    textColor: Colors.white,
+                    fontSize: 16.0,
+                  );
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomeTenant()),
+                  );
+                } on FirebaseAuthException catch (e) {
+                  if (e.code == 'user-not-found') {
+                    Fluttertoast.showToast(
+                      msg: "Aucun utilisateur trouvé avec cet email.",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0,
+                    );
+                  } else if (e.code == 'wrong-password') {
+                    Fluttertoast.showToast(
+                      msg: "Mot de passe incorrect pour cet utilisateur.",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0,
+                    );
+                  } else {
+                    Fluttertoast.showToast(
+                      msg: "Error: ${e.code}",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0,
+                    );
+                  }
+                }
               },
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                primary: MyTheme.white,
+                elevation: 5,
+              ),
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 15),
+                width: MediaQuery.of(context).size.width,
+                child: Text(
+                  'Se connecter',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.comfortaa(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: MyTheme.blue3,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
       ),
     );
-  }
-
-  void loginToFirebase() {
-    print(emailField.text.trim());
-    print(passwordField.text.trim());
-    try {
-      auth
-          .signInWithEmailAndPassword(
-              email: emailField.text.trim(),
-              password: passwordField.text.trim())
-          .then((value) {
-        print(value.toString());
-      });
-    } catch (e) {
-      print(e.toString());
-    }
   }
 }
 
@@ -260,7 +297,9 @@ Widget forgetButton = TextButton(
   onPressed: () {},
   child: Text(
     'Mot de passe oublié ?',
-    style:
-        GoogleFonts.comfortaa(color: Colors.white, fontWeight: FontWeight.bold),
+    style: GoogleFonts.comfortaa(
+      color: MyTheme.white,
+      fontWeight: FontWeight.bold,
+    ),
   ),
 );
