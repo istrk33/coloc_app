@@ -82,7 +82,7 @@ class _PropertyApplicationPageState extends State<PropertyApplicationPage> {
                           leading: ClipRRect(
                             borderRadius: BorderRadius.circular(50),
                             child: Image.network(
-                              ("user['imageUrl'] as String"),
+                              (user["avatar_url"]),
                               errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                 return Image.asset('assets/images/placeholder.jpg');
                               },
@@ -183,7 +183,7 @@ class _PropertyApplicationPageState extends State<PropertyApplicationPage> {
                                       icon: Icon(Icons.check),
                                       color: Colors.green,
                                       onPressed: () async {
-                                        if (widget.announceData["roomate_number"] < widget.announceData["max_roomates"]) {
+                                        if (widget.announceData["roomate_number"] as int < int.parse(widget.announceData["max_roomates"])) {
                                           FirebaseFirestore.instance
                                               .collection('application')
                                               .doc(applications[index].id)

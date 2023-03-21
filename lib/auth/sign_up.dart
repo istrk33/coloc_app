@@ -480,6 +480,7 @@ class _InputSection extends State<InputSection> {
           'birthdate': birthdate,
           'mobile_phone': mobilePhone,
           'sexe': hf,
+          'avatar_url': "",
         })
         .then((value) => print("Utilisateur ajouté"))
         .catchError(
