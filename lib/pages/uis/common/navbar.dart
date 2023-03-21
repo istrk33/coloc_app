@@ -51,7 +51,7 @@ class _NavbarState extends State<Navbar> {
       text: 'Profile',
     ),
   ];
-  static List<Widget> _widgetOptionsForColoc = <Widget>[HomeTenant(), MyMap(), Application(),ProfilePage()];
+  static List<Widget> _widgetOptionsForColoc = <Widget>[HomeTenant(), MyMap(), Application(), ProfilePage()];
   static List<Widget> _widgetOptionsForProp = <Widget>[HomeOwner(), MyAnnounce(), ProfilePage()];
 
   late List<GButton> _currentMenuItems;
@@ -68,8 +68,14 @@ class _NavbarState extends State<Navbar> {
     setState(() {
       if (ProfilMode.getIsOwnerMode()) {
         _currentMenuItems = menuItemsProp;
+        setState(() {
+          _selectedIndex = _selectedIndex - 1;
+        });
       } else {
         _currentMenuItems = menuItemsColoc;
+        setState(() {
+          _selectedIndex = _selectedIndex + 1;
+        });
       }
     });
   }
