@@ -3,6 +3,7 @@ import 'package:coloc_app/themes/color.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 
 FirebaseAuth auth = FirebaseAuth.instance;
@@ -220,10 +221,11 @@ class _HouseShare extends State<HouseShare> {
             return CircularProgressIndicator();
           }
           final List<Map<String, dynamic>> data = [];
-
+          final DocumentReference taskId;
           return FutureBuilder(
             future: Future.forEach(taskSnapshot.data!.docs, (taskDoc) async {
               data.add({
+                'taskId': taskDoc.id,
                 'title': taskDoc['task_name'] as String,
                 'description': taskDoc['task_description'] as String,
                 'end_date': taskDoc['task_end_date']
@@ -244,39 +246,72 @@ class _HouseShare extends State<HouseShare> {
                     Timestamp date = itemData['end_date'];
 
                     return Column(
-  children: [
-    ListTile(
-      contentPadding: EdgeInsets.fromLTRB(5, 5, 5, 5),
-      tileColor: Color.fromARGB(255, 39, 105, 191),
-      title: Text(
-        itemData['title'],
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-          color: Colors.white,
-        ),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            itemData['description'],
-            style: TextStyle(fontSize: 12, color: Colors.white),
-          ),
-          SizedBox(height: 5),
-          Text(
-            formatter.format(date.toDate()),
-            style: TextStyle(fontWeight: FontWeight.bold),
-            textAlign: TextAlign.right,
-          ),
-        ],
-      ),
-    ),
-   const SizedBox(height: 5,)
-  ],
-);
-
+                      children: [
+                        ListTile(
+                          contentPadding: EdgeInsets.fromLTRB(5, 5, 5, 5),
+                          tileColor: Color.fromARGB(255, 39, 105, 191),
+                          title: Text(
+                            itemData['title'],
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.white,
+                            ),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                itemData['description'],
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.white),
+                              ),
+                              SizedBox(height: 5),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    formatter.format(date.toDate()),
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      try {
+                                        FirebaseFirestore.instance
+                                            .collection('task')
+                                            .doc(itemData['taskId'])
+                                            .delete();
+                                        Fluttertoast.showToast(
+                                          msg: "tâche suprimée",
+                                          toastLength: Toast.LENGTH_SHORT,
+                                          gravity: ToastGravity.BOTTOM,
+                                          backgroundColor: Colors.red,
+                                          textColor: Colors.white,
+                                          fontSize: 16.0,
+                                        );
+                                      } catch (e) {
+                                        print(
+                                            'Erreur lors de la suppression du document : $e');
+                                      }
+                                    },
+                                    child: Icon(
+                                      Icons.delete,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 5,
+                        )
+                      ],
+                    );
                   },
                 );
               }
