@@ -1,3 +1,4 @@
+import 'package:coloc_app/pages/uis/tenant/houseShare.dart';
 import 'package:coloc_app/themes/color.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -45,34 +46,7 @@ class _Application extends State<Application> {
       debugShowCheckedModeBanner: false,
       // Scaffold Widget
       home: Scaffold(
-          body: DefaultTabController(
-              length: 2,
-              child: Column(
-                children: <Widget>[
-                  Material(
-                      color: Color.fromARGB(255, 255, 255, 255),
-                      child: TabBar(
-                        tabs: [
-                          Tab(
-                              icon: Icon(Icons.home_filled,
-                                  color: MyTheme.blue1)),
-                          Tab(
-                              icon: Icon(Icons.notifications,
-                                  color: MyTheme.blue1)),
-                        ],
-                      )),
-                  Expanded(
-                    flex: 1,
-                    child: TabBarView(
-                      children: [
-                        Applications(),
-                        Icon(Icons.notifications),
-                      ],
-                    ),
-                  )
-                ],
-              ))),
-    );
+          body: Applications()));
   }
 
   Widget Applications() {
@@ -142,74 +116,87 @@ class _Application extends State<Application> {
                           itemCount: data.length,
                           itemBuilder: (BuildContext context, int index) {
                             final propertyData = data[index];
-                            return Container(
-                              padding:
-                                  EdgeInsets.only(left: 10, right: 5, top: 10),
-                              decoration: BoxDecoration(),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    height: 150,
-                                    width: 200,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      image: DecorationImage(
-                                        image: NetworkImage(
-                                            propertyData['imageUrl1']
-                                                as String),
-                                        fit: BoxFit.cover,
+                            return InkWell(
+                              child: Container(
+                                padding: EdgeInsets.only(
+                                    left: 10, right: 5, top: 10),
+                                decoration: BoxDecoration(),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      height: 150,
+                                      width: 200,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        image: DecorationImage(
+                                          image: NetworkImage(
+                                              propertyData['imageUrl1']
+                                                  as String),
+                                          fit: BoxFit.cover,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          propertyData['property_name']
-                                              as String,
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
+                                    SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            propertyData['property_name']
+                                                as String,
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
-                                        ),
-                                        SizedBox(height: 8),
-                                        Text(
-                                          propertyData['descriptionApplication']
-                                                      .length >
-                                                  100
-                                              ? '${'-' + propertyData['descriptionApplication'].substring(0, 100)}...'
-                                              : propertyData[
-                                                  'descriptionApplication'],
-                                          style: const TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 12,
+                                          SizedBox(height: 8),
+                                          Text(
+                                            propertyData['descriptionApplication']
+                                                        .length >
+                                                    100
+                                                ? '${'-' + propertyData['descriptionApplication'].substring(0, 100)}...'
+                                                : propertyData[
+                                                    'descriptionApplication'],
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12,
+                                            ),
                                           ),
-                                        ),
-                                        Text(
-                                          propertyData['state'] as String,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: propertyData['state'] ==
-                                                    'pending'
-                                                ? Color.fromARGB(
-                                                    255, 19, 96, 154)
-                                                : propertyData['state'] ==
-                                                        'accepted'
-                                                    ? Colors.green
-                                                    : Colors
-                                                        .red, // sinon, la couleur sera rouge
+                                          Text(
+                                            propertyData['state'] as String,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: propertyData['state'] ==
+                                                      'pending'
+                                                  ? Color.fromARGB(
+                                                      255, 19, 96, 154)
+                                                  : propertyData['state'] ==
+                                                          'accepted'
+                                                      ? Colors.green
+                                                      : Colors
+                                                          .red, // sinon, la couleur sera rouge
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
+                              onTap: () {
+                                if (propertyData['state'] == 'accepted') {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => HouseShare(
+                                          /* announceId: snapshot.data![index]['announceId'],*/
+                                          ),
+                                    ),
+                                  );
+                                }
+                              },
                             );
                           },
                         );

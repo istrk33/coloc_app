@@ -1,8 +1,10 @@
+import 'package:coloc_app/pages/uis/tenant/homeTenant.dart';
 import 'package:coloc_app/themes/color.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 FirebaseAuth auth = FirebaseAuth.instance;
 
@@ -29,7 +31,7 @@ class LoginPage extends StatelessWidget {
             titleSection,
             // textSection,
             InputSection(),
-            // forgetButton,
+            forgetButton,
           ],
         ),
       ),
@@ -80,7 +82,8 @@ Widget titleSection = Container(
       const SizedBox(width: 3),
       Text(
         'App',
-        style: GoogleFonts.exo(fontSize: 40, fontWeight: FontWeight.w900, color: MyTheme.blue4),
+        style: GoogleFonts.exo(
+            fontSize: 40, fontWeight: FontWeight.w900, color: MyTheme.blue4),
       ),
     ],
   ),
@@ -138,7 +141,10 @@ class InputSection extends StatelessWidget {
                       controller: emailField,
                       keyboardType: TextInputType.emailAddress,
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.comfortaa(fontSize: 18, color: MyTheme.white, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.comfortaa(
+                          fontSize: 14,
+                          color: MyTheme.white,
+                          fontWeight: FontWeight.bold),
                       obscureText: false,
                       decoration: InputDecoration(
                         label: const Center(
@@ -185,7 +191,10 @@ class InputSection extends StatelessWidget {
                     child: TextField(
                       controller: passwordField,
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.comfortaa(fontSize: 18, color: MyTheme.white, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.comfortaa(
+                          fontSize: 14,
+                          color: MyTheme.white,
+                          fontWeight: FontWeight.bold),
                       obscureText: true,
                       decoration: InputDecoration(
                         label: const Center(
@@ -207,40 +216,80 @@ class InputSection extends StatelessWidget {
             height: 60,
             width: double.infinity,
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: MyTheme.white,
-                padding: const EdgeInsets.fromLTRB(10, 15, 10, 15),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(30)),
-                ),
-              ),
-              child: Text(
-                "Connexion".toUpperCase(),
-                style: const TextStyle(
-                  color: MyTheme.blue3,
-                  fontSize: 20.0,
-                ),
-              ),
-              onPressed: () {
-                loginToFirebase();
+              onPressed: () async {
+                try {
+                  await auth.signInWithEmailAndPassword(
+                    email: emailField.text.trim(),
+                    password: passwordField.text.trim(),
+                  );
+                  Fluttertoast.showToast(
+                    msg: "Connecté",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: MyTheme.blue3,
+                    textColor: Colors.white,
+                    fontSize: 16.0,
+                  );
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomeTenant()),
+                  );
+                } on FirebaseAuthException catch (e) {
+                  if (e.code == 'user-not-found') {
+                    Fluttertoast.showToast(
+                      msg: "Aucun utilisateur trouvé avec cet email.",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0,
+                    );
+                  } else if (e.code == 'wrong-password') {
+                    Fluttertoast.showToast(
+                      msg: "Mot de passe incorrect pour cet utilisateur.",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0,
+                    );
+                  } else {
+                    Fluttertoast.showToast(
+                      msg: "Error: ${e.code}",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0,
+                    );
+                  }
+                }
               },
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                primary: MyTheme.white,
+                elevation: 5,
+              ),
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 15),
+                width: MediaQuery.of(context).size.width,
+                child: Text(
+                  'Se connecter',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.comfortaa(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: MyTheme.blue3,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
       ),
     );
-  }
-
-  void loginToFirebase() {
-    print(emailField.text.trim());
-    print(passwordField.text.trim());
-    try {
-      auth.signInWithEmailAndPassword(email: emailField.text.trim(), password: passwordField.text.trim()).then((value) {
-        print(value.toString());
-      });
-    } catch (e) {
-      print(e.toString());
-    }
   }
 }
 
