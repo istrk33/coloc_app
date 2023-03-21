@@ -158,7 +158,7 @@ class GetUserDataName extends StatelessWidget {
           title: Center(
             child: Text(
               'En cours de chargement',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 2),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
           ),
         );
