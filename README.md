@@ -1,7 +1,7 @@
 # coloc_app
 <p align="center"><img src="https://user-images.githubusercontent.com/76879157/226761837-e970231d-7395-46ae-8594-324c95bf1970.png" alt="Image" width="10%" height="auto" /></p>
 
-Ce projet est un projet scolaire réalisé en Flutter qui a pour objectif de gérer des colocations (cçoté colocataire et propriétaire).
+Ce projet est un projet scolaire réalisé en Flutter qui a pour objectif de gérer des colocations (côté colocataire et propriétaire).
 
 ## Installation
 1. Cloner le dépôt :
