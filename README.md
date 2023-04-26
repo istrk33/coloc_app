@@ -71,7 +71,7 @@ Vous devrez également configurer les règles de sécurité Firebase pour vous a
 ## Démonstration de l'application
 Voici une vidéo de démonstration de l'application :
 
-<iframe width="560" height="315" src="https://youtu.be/-3SUeu-nhN8" frameborder="0" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/-3SUeu-nhN8" frameborder="0" allowfullscreen></iframe>
 
 ## Contributeurs
 * https://github.com/RowanMrc
