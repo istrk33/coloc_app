@@ -70,7 +70,7 @@ Vous devrez également configurer les règles de sécurité Firebase pour vous a
 
 ## Démonstration de l'application
 Voici une vidéo de démonstration de l'application :
-`https://youtu.be/-3SUeu-nhN8`
+https://youtu.be/-3SUeu-nhN8
 
 ## Contributeurs
 * https://github.com/RowanMrc
